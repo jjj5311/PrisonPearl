@@ -30,13 +30,15 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 public class PrisonPearlStorage implements SaveLoad {
+        private PrisonPearlPlugin plugin;
 	private final Map<Short, PrisonPearl> pearls_byid;
 	private final Map<String, PrisonPearl> pearls_byimprisoned;
 	private short nextid;
 	
 	private boolean dirty;
 	
-	public PrisonPearlStorage() {
+	public PrisonPearlStorage(PrisonPearlPlugin plugin) {
+        this.plugin = plugin;
 		pearls_byid = new HashMap<Short, PrisonPearl>();
 		pearls_byimprisoned = new HashMap<String, PrisonPearl>();
 		nextid = 1;
@@ -252,8 +254,8 @@ public class PrisonPearlStorage implements SaveLoad {
 			}		
 			
 			message = message + "Pearl #" + pp.getID() + ",Name: " + pp.getImprisonedName() + " in a " + pp.getHolderBlockState().getType();
-			int requirementSize = 8;
-			ItemStack requirement = new ItemStack(Material.COAL, requirementSize);
+			ItemStack requirement = plugin.getPPConfig().getUpkeepResource();
+			int requirementSize = requirement.getAmount();
 			if(inv[0].containsAtLeast(requirement,requirementSize))
 			{
 				message = message + "\n Chest contains enough purestrain coal.";

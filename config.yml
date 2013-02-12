@@ -16,3 +16,6 @@ prison_motd:
    - by a prison pearl.
    - Type /pplocate to locate your pearl.
 save_ticks: 2400
+upkeep:
+  resource: 263
+  quantity: 4
