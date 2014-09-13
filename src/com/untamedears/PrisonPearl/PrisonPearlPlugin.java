@@ -276,7 +276,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			brr.append(line + "\n");
 			while ((line = br.readLine()) != null){
 				String[] parts = line.split(" ");
-				String name = parts[0];
+				String name = parts[1];
 				UUID uuid = null;
 	            if (isNameLayer)
 	            	uuid = NameAPI.getUUID(name);
@@ -284,8 +284,8 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	            	uuid = Bukkit.getOfflinePlayer(name).getUniqueId();
 				if (uuid == null)
 					uuid = Bukkit.getOfflinePlayer(name).getUniqueId();
-				brr.append(uuid.toString() + " ");
-				for (int x = 1; x < parts.length; x++)
+				brr.append(parts[0] + " " + uuid.toString() + " ");
+				for (int x = 2; x < parts.length; x++)
 					brr.append(parts[x] + " ");
 				brr.append("\n");
 			}

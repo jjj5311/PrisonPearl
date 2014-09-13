@@ -245,8 +245,8 @@ class PrisonPearlManager implements Listener {
 		event.setCancelled(true);
 
 		freePearl(pp);
-		plugin.getLogger().info(player.getName() + "("+pp.getImprisonedId() + ") is being freed. Reason: " + player.getDisplayName() + " threw the pearl.");
-		player.sendMessage("You've freed " + player.getName());
+		plugin.getLogger().info(pp.getImprisonedName() + "("+pp.getImprisonedId() + ") is being freed. Reason: " + player.getDisplayName() + " threw the pearl.");
+		player.sendMessage("You've freed " + pp.getImprisonedName());
 	}
 
 	// Called from CombatTagListener.onNpcDespawn
@@ -321,7 +321,7 @@ class PrisonPearlManager implements Listener {
 			return;
 
 		Player player = Bukkit.getPlayer(pp.getImprisonedId());
-		plugin.getLogger().info(player.getName() + "("+pp.getImprisonedId() + ") is being freed. Reason: PrisonPearl item despawned.");
+		plugin.getLogger().info(pp.getImprisonedName() + "("+pp.getImprisonedId() + ") is being freed. Reason: PrisonPearl item despawned.");
 		freePearl(pp);
 	}
 
@@ -345,7 +345,7 @@ class PrisonPearlManager implements Listener {
 						public Void call() throws Exception {
 							if (freePearl(pp))
 							{
-								plugin.getLogger().info(player.getName() + "("+pp.getImprisonedId() + ") is being freed. Reason: Chunk with PrisonPearl unloaded.");
+								plugin.getLogger().info(pp.getImprisonedName() + "("+pp.getImprisonedId() + ") is being freed. Reason: Chunk with PrisonPearl unloaded.");
 								entity.remove();
 							}
 							return null;
@@ -368,7 +368,7 @@ class PrisonPearlManager implements Listener {
 			return;
 
 		Player player = Bukkit.getPlayer(pp.getImprisonedId());
-		plugin.getLogger().info(player.getName() + "("+pp.getImprisonedId() + ") is being freed. Reason: PrisonPearl combusted(lava/fire).");
+		plugin.getLogger().info(pp.getImprisonedName() + "("+pp.getImprisonedId() + ") is being freed. Reason: PrisonPearl combusted(lava/fire).");
 		freePearl(pp);
 	}
 	
