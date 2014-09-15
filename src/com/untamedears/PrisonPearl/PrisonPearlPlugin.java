@@ -251,7 +251,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	            	uuid = Bukkit.getOfflinePlayer(line).getUniqueId();
 				if (uuid == null)
 					uuid = Bukkit.getOfflinePlayer(line).getUniqueId();
-				brr.append(line + "\n");
+				brr.append(uuid.toString() + "\n");
 			}
 	
 			brr.flush();
@@ -347,7 +347,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	            else
 	            	uuid = Bukkit.getOfflinePlayer(name).getUniqueId();
 				if (uuid == null)
-					Bukkit.getOfflinePlayer(name).getUniqueId();
+					uuid = Bukkit.getOfflinePlayer(name).getUniqueId();
 				brr.append(uuid+"|"+parts[1]+"\n");
 			}
 			brr.flush();
@@ -870,7 +870,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		if (altsList == null) {
 			altsList = new AltsList(this);
 		}
-		altsList.load(getAltsListFile());
+		altsList.queryForUpdatedAltLists(pearls.getAllUUIDSforPearls());
 	}
 	
 	public void checkBanAllAlts() {

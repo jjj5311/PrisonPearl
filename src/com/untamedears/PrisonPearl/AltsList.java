@@ -58,7 +58,6 @@ class AltsList implements Listener {
 		// Check each player for bans, removing their alt list from the check
 		// list
 		// after they have been checked.
-		final List<String> finalList = new ArrayList<String>(altsList.size());
 		while (!playerBansToCheck.isEmpty()) {
 			final UUID playerUUID = playerBansToCheck.iterator().next();
 			final List<UUID> thisAltList = altsHash.get(playerUUID);
@@ -93,41 +92,6 @@ class AltsList implements Listener {
 		singleton.add(playerUUID);
 		Bukkit.getServer().getPluginManager()
 				.callEvent(new RequestAltsListEvent(singleton));
-	}
-
-	public void load(File file) {
-		try {
-			loadAlts(file);
-			initialised = true;
-		} catch (IOException e) {
-			e.printStackTrace();
-			Bukkit.getLogger().info("Failed to load file!");
-			initialised = false;
-		}
-	}
-
-	private void loadAlts(File file) throws IOException {
-		altsHash = new HashMap<UUID, List<UUID>>();
-		FileInputStream fis;
-		fis = new FileInputStream(file);
-		BufferedReader br = new BufferedReader(new InputStreamReader(fis));
-		String line;
-		while ((line = br.readLine()) != null) {
-			if (line.length() > 1) {
-				String parts[] = line.split(" ");
-				List<UUID> uuids = new ArrayList<UUID>(parts.length);
-				// String[] newString = new String[parts.length];
-				// System.arraycopy(parts, 0, newString, 0, parts.length);
-				for (int i = 0; i < parts.length; i++) {
-					uuids.set(i, UUID.fromString(parts[i]));
-				}
-				for (UUID uuid : uuids) {
-					altsHash.put(uuid, uuids);
-				}
-			}
-		}
-
-		br.close();
 	}
 
 	public UUID[] getAltsArray(UUID uuid) {

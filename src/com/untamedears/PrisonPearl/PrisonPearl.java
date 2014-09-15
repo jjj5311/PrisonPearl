@@ -88,7 +88,7 @@ public class PrisonPearl {
 		return imprisonedId;
 	}
 	private String getPlayerName() {
-		return Bukkit.getPlayer(imprisonedId).getName();
+		return Bukkit.getOfflinePlayer(imprisonedId).getName();
 	}
 	public Player getImprisonedPlayer() {
 		return Bukkit.getPlayer(imprisonedId);

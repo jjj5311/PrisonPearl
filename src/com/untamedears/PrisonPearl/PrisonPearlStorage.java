@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -63,6 +64,14 @@ public class PrisonPearlStorage implements SaveLoad {
 //    public String normalizeName(String name) {
 //        return name.toLowerCase();
 //    }
+	
+	public List<UUID> getAllUUIDSforPearls(){
+		List<UUID> uuids = new ArrayList<UUID>();
+		for (UUID uuid: pearls_byimprisoned.keySet()){
+			uuids.add(uuid);
+		}
+		return uuids;
+	}
 
 	public void load(File file) throws IOException {
 		FileInputStream fis = new FileInputStream(file);
