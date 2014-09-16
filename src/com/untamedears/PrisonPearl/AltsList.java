@@ -1,10 +1,5 @@
 package com.untamedears.PrisonPearl;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,7 +14,6 @@ import org.bukkit.event.Listener;
 
 class AltsList implements Listener {
 	private HashMap<UUID, List<UUID>> altsHash;
-	private boolean initialised = false;
 	private PrisonPearlPlugin plugin_;
 
 	public AltsList(PrisonPearlPlugin plugin) {
@@ -29,11 +23,8 @@ class AltsList implements Listener {
 
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onAltsListUpdate(AltsListEvent event) {
-		if (!initialised) {
 			PrisonPearlPlugin
 					.info("Grabbing alts for players");
-			return;
-		}
 		final List<UUID> altsList = event.getAltsList();
 		// Save the old alt lists in their entirety to reduce all the cross
 		// checking
@@ -96,7 +87,7 @@ class AltsList implements Listener {
 	}
 
 	public UUID[] getAltsArray(UUID uuid) {
-		if (!initialised || !altsHash.containsKey(uuid))
+		if (!altsHash.containsKey(uuid))
 			return new UUID[0];
 		List<UUID> uuids = altsHash.get(uuid);
 		List<UUID> alts = new ArrayList<UUID>(uuids.size() - 1);
