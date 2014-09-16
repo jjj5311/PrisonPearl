@@ -907,6 +907,11 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		return time;
 	}
 	
+	public void checkBanForAlts(UUID id){
+		for (UUID alt: altsList.getAltsArray(id))
+			checkBan(alt);
+	}
+	
 	public int checkBan(UUID id) {
 		//log.info("checking "+name);
 		UUID[] alts = altsList.getAltsArray(id);

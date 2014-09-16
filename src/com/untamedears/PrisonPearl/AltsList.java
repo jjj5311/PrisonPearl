@@ -24,13 +24,14 @@ class AltsList implements Listener {
 
 	public AltsList(PrisonPearlPlugin plugin) {
 		plugin_ = plugin;
+		altsHash = new HashMap<UUID, List<UUID>>();
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onAltsListUpdate(AltsListEvent event) {
 		if (!initialised) {
 			PrisonPearlPlugin
-					.info("Missed AltsListUpdate during initialization");
+					.info("Grabbing alts for players");
 			return;
 		}
 		final List<UUID> altsList = event.getAltsList();

@@ -82,7 +82,9 @@ class PrisonPearlManager implements Listener {
 	 */
 	public boolean imprisonPlayer(UUID imprisonedId, Player imprisoner) {
 		World respawnworld = Bukkit.getWorld(getConfig().getString("free_world"));
-
+		
+		plugin.getAltsList().cacheAltListFor(imprisonedId);
+		
 		// set up the imprisoner's inventory
 		Inventory inv = imprisoner.getInventory();
 		ItemStack stack = null;
@@ -190,6 +192,9 @@ class PrisonPearlManager implements Listener {
 		if (!prisonPearlEvent(pp, PrisonPearlEvent.Type.FREED)) {
 			return false;
 		}
+		// unban alts and players if they are allowed to be
+		plugin.checkBan(pp.getImprisonedId());
+		plugin.checkBanForAlts(pp.getImprisonedId());
 		pearls.deletePearl(pp);
 		return true;
 	}
