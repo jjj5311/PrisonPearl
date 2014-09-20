@@ -171,7 +171,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		if (startupFeed){
 			//try{
 				//Thread.sleep(1000 * 60);
-				pearls.feedPearls(pearlman);
+				log.log(Level.INFO, pearls.feedPearls(pearlman));;
 			//}
 			//catch(Exception e){
 				//System.out.println("A straight foolish error has occurred while loading PrisonPearl.");
