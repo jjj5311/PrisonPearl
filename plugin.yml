@@ -1,6 +1,6 @@
 name: PrisonPearl
 main: com.untamedears.PrisonPearl.PrisonPearlPlugin
-version: 2.1.3
+version: 2.1.4
 softdepend: [NameLayer, CombatTag]
 commands:
    pplocate:

@@ -33,7 +33,7 @@ class PrisonPearlCommands implements CommandExecutor {
         this.pearlman = pearlman;
         this.summonman = summonman;
         this.broadcastman = broadcastman;
-        isNameLayer = Bukkit.getPluginManager().getPlugin("NameLayer").isEnabled();
+        isNameLayer = Bukkit.getPluginManager().isPluginEnabled("NameLayer");
     }
 
     @Override
