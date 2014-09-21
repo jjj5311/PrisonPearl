@@ -128,7 +128,8 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		broadcastman = new BroadcastManager();
 		combatTagManager = new CombatTagManager(this.getServer(), log);
 		loadAlts();
-		checkBanAllAlts();
+		// Isnt needed since loadAlts() does this already
+		// checkBanAllAlts();
 	
 		
 //		if (Bukkit.getPluginManager().isPluginEnabled("PhysicalShop"))

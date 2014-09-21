@@ -34,10 +34,8 @@ class AltsList implements Listener {
 		final List<UUID> normalizedList = new ArrayList<UUID>(altsList.size());
 		for (UUID playerUUID : altsList) {
 			normalizedList.add(playerUUID);
-			if (altsHash.containsKey(playerUUID)) {
-				banListsToCheck.add(altsHash.get(playerUUID));
-			}
 			altsHash.put(playerUUID, normalizedList);
+			banListsToCheck.add(altsHash.get(playerUUID));
 		}
 		// Unroll the ban lists into the playerBansToCheck. Only need a single
 		// account from the banlist we just built to check it.
@@ -50,6 +48,7 @@ class AltsList implements Listener {
 		// Check each player for bans, removing their alt list from the check
 		// list
 		// after they have been checked.
+		int bannedCount = 0, unbannedCount = 0, total = 0, result;
 		while (!playerBansToCheck.isEmpty()) {
 			final UUID playerUUID = playerBansToCheck.iterator().next();
 			final List<UUID> thisAltList = altsHash.get(playerUUID);
@@ -59,9 +58,15 @@ class AltsList implements Listener {
 			}
 			playerBansToCheck.removeAll(thisAltList);
 			for (UUID altUUID : thisAltList) {
-				plugin_.checkBan(altUUID);
+				result = plugin_.checkBan(altUUID);
+				if (result == 2)
+					bannedCount++;
+				else if (result == 1)
+					unbannedCount++;
+				total++;
 			}
 		}
+		PrisonPearlPlugin.info(bannedCount + " players were banned, " + unbannedCount + " were unbanned out of " + total + " accounts.");
 	}
 
 	public void queryForUpdatedAltLists(List<UUID> playersToCheck) {
