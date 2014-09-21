@@ -46,7 +46,7 @@ public class PrisonPearlStorage implements SaveLoad {
 	private boolean dirty;
 	
 	public PrisonPearlStorage(PrisonPearlPlugin plugin) {
-		isNameLayer = Bukkit.getPluginManager().getPlugin("NameLayer").isEnabled();
+		isNameLayer = Bukkit.getPluginManager().isPluginEnabled("NameLayer");
 		this.plugin = plugin;
 		pearls_byid = new HashMap<Short, PrisonPearl>();
 		pearls_byimprisoned = new HashMap<UUID, PrisonPearl>();

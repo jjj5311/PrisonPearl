@@ -83,8 +83,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	private final boolean startupFeed = true; //ADDED SO ONE CAN DISABLE STARTUP FEED
 	
 	public void onEnable() {
-		if (Bukkit.getPluginManager().getPlugin("NameLayer") != null)
-			isNameLayer =  Bukkit.getPluginManager().getPlugin("NameLayer").isEnabled();
+		isNameLayer = Bukkit.getPluginManager().isPluginEnabled("NameLayer");
 		globalInstance = this;
 		File dat = getDataFolder();
 		data=dat;
