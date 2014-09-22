@@ -870,6 +870,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	public void loadAlts() {
 		if (altsList == null) {
 			altsList = new AltsList(this);
+			Bukkit.getPluginManager().registerEvents(altsList, this);
 		}
 		altsList.queryForUpdatedAltLists(pearls.getAllUUIDSforPearls());
 	}
