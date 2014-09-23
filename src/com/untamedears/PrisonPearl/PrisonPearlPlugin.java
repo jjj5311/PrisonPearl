@@ -872,7 +872,8 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			altsList = new AltsList(this);
 			Bukkit.getPluginManager().registerEvents(altsList, this);
 		}
-		altsList.queryForUpdatedAltLists(pearls.getAllUUIDSforPearls());
+		if (!banManager_.hasBannedPlayers()) // shouldn't be too much of a bother
+			altsList.queryForUpdatedAltLists(pearls.getAllUUIDSforPearls());
 	}
 	
 	public void checkBanAllAlts() {

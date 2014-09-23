@@ -247,4 +247,8 @@ class BanManager implements Listener {
 			e.printStackTrace();
 		}
 	}
+	
+	public boolean hasBannedPlayers(){
+		return bannedUUIDs_.size() > 0;
+	}
 }
