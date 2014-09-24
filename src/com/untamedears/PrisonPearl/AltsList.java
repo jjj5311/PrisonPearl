@@ -92,8 +92,11 @@ class AltsList implements Listener {
 	}
 
 	public UUID[] getAltsArray(UUID uuid) {
-		if (!altsHash.containsKey(uuid))
-			return new UUID[0];
+		if (!altsHash.containsKey(uuid)){
+			List<UUID> uuids = new ArrayList<UUID>();
+			uuids.add(uuid);
+			queryForUpdatedAltLists(uuids);
+		}
 		List<UUID> uuids = altsHash.get(uuid);
 		List<UUID> alts = new ArrayList<UUID>(uuids.size() - 1);
 		for (UUID altUUID : uuids) {
