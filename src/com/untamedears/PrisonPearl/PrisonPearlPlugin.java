@@ -954,7 +954,6 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	}
 	
 	private void banAndKick(UUID id, int pearledCount, String names) {
-		this.getServer().getOfflinePlayer(id).setBanned(true);
 		Player p = this.getServer().getPlayer(id);
 		if (p != null) {
 			p.kickPlayer(kickMessage);
@@ -984,7 +983,6 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
             }
             pearledCount = pearls.getImprisonedCount(alts);
             if (pearledCount >= maxImprisonedAlts) {
-                this.getServer().getOfflinePlayer(id).setBanned(true);
                 Player p = this.getServer().getPlayer(id);
                 if (p != null) {
                     p.kickPlayer(kickMessage);
@@ -992,7 +990,6 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
                 banManager_.ban(id);
                 log.info("banning " + id + ", for having " + pearledCount + " imprisoned alts: " + iNames);
             } else if (banManager_.isBanned(id)) {
-                this.getServer().getOfflinePlayer(id).setBanned(false);
                 banManager_.pardon(id);
                 log.info("unbanning " + id + ", no longer has too many imprisoned alts.");
             }
