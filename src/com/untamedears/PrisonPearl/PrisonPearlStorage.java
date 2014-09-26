@@ -19,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.BrewingStand;
 import org.bukkit.block.Chest;
@@ -154,7 +155,7 @@ public class PrisonPearlStorage implements SaveLoad {
 		return nextid++;
 	}
 	
-	public PrisonPearl newPearl(Player imprisoned, Player imprisoner) {
+	public PrisonPearl newPearl(OfflinePlayer imprisoned, Player imprisoner) {
 		return newPearl(imprisoned.getName(), imprisoned.getUniqueId(), imprisoner);
 	}
 	

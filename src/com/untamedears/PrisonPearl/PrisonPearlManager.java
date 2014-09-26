@@ -19,6 +19,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.BrewingStand;
@@ -144,9 +145,10 @@ class PrisonPearlManager implements Listener {
 			return false;
 		}
 
+		OfflinePlayer pearled = Bukkit.getOfflinePlayer(imprisonedId);
 		// create the prison pearl
-		PrisonPearl pp = pearls.newPearl(Bukkit.getPlayer(imprisonedId), imprisoner);
-		String name = Bukkit.getPlayer(pp.getImprisonedId()).getName();
+		PrisonPearl pp = pearls.newPearl(pearled, imprisoner);
+		String name = pearled.getName();
 		// set off an event
 		if (!prisonPearlEvent(pp, PrisonPearlEvent.Type.NEW, imprisoner)) {
 			pearls.deletePearl(pp);
