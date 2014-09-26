@@ -98,6 +98,10 @@ class AltsList implements Listener {
 			queryForUpdatedAltLists(uuids);
 		}
 		List<UUID> uuids = altsHash.get(uuid);
+		if (uuids == null || uuids.size() == 0){
+			uuids.add(uuid);
+			return uuids.toArray(new UUID[uuids.size()]);
+		}
 		List<UUID> alts = new ArrayList<UUID>(uuids.size() - 1);
 		for (UUID altUUID : uuids) {
 			if (!altUUID.equals(uuid)) {
