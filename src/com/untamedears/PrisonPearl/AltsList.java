@@ -99,8 +99,7 @@ class AltsList implements Listener {
 		}
 		List<UUID> uuids = altsHash.get(uuid);
 		if (uuids == null || uuids.size() == 0){
-			uuids.add(uuid);
-			return uuids.toArray(new UUID[uuids.size()]);
+			return new UUID[0];
 		}
 		List<UUID> alts = new ArrayList<UUID>(uuids.size() - 1);
 		for (UUID altUUID : uuids) {
