@@ -535,18 +535,21 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			return;
 		
 		Player player = (Player)event.getEntity();
+		UUID uuid = player.getUniqueId();
 		String playerName = player.getName();
 		
 		if (combatTagManager.isCombatTagNPC(event.getEntity()))  {
 			playerName = player.getName();
+			// UUID being passed isn't the right one.
+			uuid = NameAPI.getUUID(playerName);
 			//String realName = combatTagManager.getNPCPlayerName(player);
-			log.info("NPC Player: "+playerName+", ID: "+ player.getUniqueId());
+			log.info("NPC Player: "+playerName+", ID: "+ uuid);
 //			if (!realName.equals("")) {
 //				playerName = realName;
 //			}
 		}
 		
-		PrisonPearl pp = pearls.getByImprisoned(player.getUniqueId()); // find out if the player is imprisoned
+		PrisonPearl pp = pearls.getByImprisoned(uuid); // find out if the player is imprisoned
 		if (pp != null) { // if imprisoned
 			if (!getConfig().getBoolean("prison_stealing") || player.getLocation().getWorld() == getPrisonWorld()) {// bail if prisoner stealing isn't allowed, or if the player is in prison (can't steal prisoners from prison ever)
 				// reveal location of pearl to damaging players if pearl stealing is disabled
@@ -573,7 +576,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			if (getConfig().getBoolean("prison_musthotbar") && firstpearl > 9) // bail if it must be in the hotbar
 				continue; 
 				
-			if (pearlman.imprisonPlayer(player.getUniqueId(), damager)) // otherwise, try to imprison
+			if (pearlman.imprisonPlayer(uuid, damager)) // otherwise, try to imprison
 				break;
 		}
 	}
