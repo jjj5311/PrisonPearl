@@ -1,6 +1,6 @@
 name: PrisonPearl
 main: com.untamedears.PrisonPearl.PrisonPearlPlugin
-version: 2.1.12
+version: 2.1.13
 softdepend: [NameLayer, CombatTag]
 commands:
    pplocate:
@@ -99,15 +99,21 @@ commands:
    ppgetalts:
       description: Gets a list of the players associated accounts.
       usage: /ppgetalts [playername]
+      permission: prisonpearl.getalts
 
    ppsetalts:
       description: Allows people to add players to the excluded_alts.txt.
       usage: /ppsetalts [playername] [confirmedalt1] [confirmedalt2] etc....
 
-   pplistbans:
-      description: Lists alt banned players
-      usage: /pplistbans [searchtext]
-      permission: prisonpearl.pplistbans
+   ppban:
+      description: Bans a player's alt list.
+      usage: /ppban <player>
+      permission: prisonpearl.banalts
+
+   ppunban:
+      description: Unbans a player's alt list.
+      usage: /ppunban <player>
+      permission: prisonpearl.unbanalts
 
 permissions:
    prisonpearl.normal.pplocate:
@@ -210,9 +216,11 @@ permissions:
       description: Let's players pearl other players.
       default: true
 
-   prisonpearl.pplistbans:
-      description: Allows use of /pplistbans.
-      default: false
+   prisonpearl.unbanalts:
+      default: op
+
+   prisonpearl.banalts:
+      default: op
 
    prisonpearl.*:
       description: Gives full access to PrisonPearl commands
@@ -226,3 +234,5 @@ permissions:
          prisonpearl.setalts: true
          prisonpearl.pploadalts: true
          prisonpearl.pplistbans: true
+         prisonpearl.banalts: true
+         prisonpearl.unbanalts: true

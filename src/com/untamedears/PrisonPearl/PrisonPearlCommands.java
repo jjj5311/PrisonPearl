@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -165,10 +166,49 @@ class PrisonPearlCommands implements CommandExecutor {
                 return setAlts(sender, args);}
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.setalts");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
-        }return false;
+        } else if (label.equalsIgnoreCase("ppban")){
+        	return banAlt(sender, args);
+        } else if (label.equalsIgnoreCase("ppunban")){
+        	return unBanAlt(sender, args);
+        }
+        return false;
     }
 
-    private boolean setAlts(CommandSender sender, String[] args) {
+	private boolean unBanAlt(CommandSender sender, String[] args) {
+		String name = args[0];
+		UUID uuid = null;
+		if (isNameLayer)
+			uuid = NameAPI.getUUID(name);
+		else
+			uuid = Bukkit.getOfflinePlayer(name).getUniqueId();
+		UUID[] alts = plugin.getAltsList().getAltsArray(uuid);
+		int count = 1;
+		for (UUID alt: alts){
+			plugin.getBanManager().pardon(alt);
+			count++;
+		}
+		sender.sendMessage(ChatColor.GREEN + "" + count +" accounts were unbanned or left alone.");
+		return true;
+	}
+
+	private boolean banAlt(CommandSender sender, String[] args) {
+		String name = args[0];
+		UUID uuid = null;
+		if (isNameLayer)
+			uuid = NameAPI.getUUID(name);
+		else
+			uuid = Bukkit.getOfflinePlayer(name).getUniqueId();
+		UUID[] alts = plugin.getAltsList().getAltsArray(uuid);
+		int count = 1;
+		for (UUID alt: alts){
+			plugin.getBanManager().ban(alt);
+			count++;
+		}
+		sender.sendMessage(ChatColor.GREEN + "" + count +" accounts were banned or left alone.");
+		return true;
+	}
+
+	private boolean setAlts(CommandSender sender, String[] args) {
     	if (args.length < 1)
     	{
     		return false;
@@ -199,7 +239,7 @@ class PrisonPearlCommands implements CommandExecutor {
     	{
     		return false;
     	}
-    	Player player = Bukkit.getPlayerExact(args[0]);
+    	OfflinePlayer player = Bukkit.getOfflinePlayer(args[0]);
     	UUID[] alts = plugin.getAltsList().getAltsArray(player.getUniqueId());
     	if (alts.length == 0)
     	{
