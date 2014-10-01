@@ -194,10 +194,10 @@ class PrisonPearlManager implements Listener {
 		if (!prisonPearlEvent(pp, PrisonPearlEvent.Type.FREED)) {
 			return false;
 		}
+		pearls.deletePearl(pp); // delete the pearl first
 		// unban alts and players if they are allowed to be
 		plugin.checkBan(pp.getImprisonedId());
 		plugin.checkBanForAlts(pp.getImprisonedId());
-		pearls.deletePearl(pp);
 		return true;
 	}
 
