@@ -930,20 +930,21 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 				names = names + ", ";
 			}
 		}
-		if (pearledCount > maxImprisonedAlts && pearls.isImprisoned(id)) {
+		if (pearledCount >= maxImprisonedAlts) {
+			if (!pearls.isImprisoned(id)) {
+				banAndKick(id, pearledCount, names);
+				return 2;
+			}
 			int count = 0;
-            for (UUID imprisonedName : imprisonedNames) {
-                if (imprisonedName.compareTo(id) < 0) {
-                    count++;
-                }
-                if (count >= maxImprisonedAlts) {
-                    banAndKick(id, pearledCount, names);
-                    return 2;
-                }
-            }
-		} else if (pearledCount.equals(maxImprisonedAlts) || (pearledCount > maxImprisonedAlts && !pearls.isImprisoned(id))) {
-			banAndKick(id,pearledCount,names);
-			return 2;
+			for (UUID imprisonedName : imprisonedNames) {
+				if (imprisonedName.compareTo(id) < 0) {
+					count++;
+				}
+				if (count >= maxImprisonedAlts) {
+					banAndKick(id, pearledCount, names);
+					return 2;
+				}
+			}
 		} else if (banManager_.isBanned(id)) {
 			if (pearledCount <= 0) {
 				log.info("pardoning "+id+" for having no imprisoned alts");
