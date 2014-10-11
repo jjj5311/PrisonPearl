@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -247,11 +246,12 @@ public class PrisonPearlStorage implements SaveLoad {
 		real_inv.setItem(pearlslot, new ItemStack(Material.ENDER_PEARL));
 	}
 	
-	public void deletePearl(PrisonPearl pp) {
+	public void deletePearl(PrisonPearl pp, String reason) {
 		removePearlFromContainer(pp);
 		pearls_byid.remove(pp.getID());
 		pearls_byimprisoned.remove(pp.getImprisonedId());
 		dirty = true;
+		plugin.getLogger().info(reason);
 	}
 	
 	public void addPearl(PrisonPearl pp) {
@@ -376,8 +376,8 @@ public class PrisonPearlStorage implements SaveLoad {
 			Inventory inv[] = new Inventory[2];
 			int retval = HolderStateToInventory(pp, inv);
 			if (retval == HolderStateToInventory_BADCONTAINER) {
-				pearlman.freePearl(pp);
-				plugin.getLogger().info(prisonerId + " is being freed. Reason: Freed during coal feed, container was corrupt.");
+				String reason = prisonerId + " is being freed. Reason: Freed during coal feed, container was corrupt.";
+				pearlman.freePearl(pp, reason);
 				log+="\n freed:"+prisonerId+",reason:"+"badcontainer";
 				freedpearls++;
 				continue;
@@ -417,8 +417,8 @@ public class PrisonPearlStorage implements SaveLoad {
 				log+="\n fed:" + prisonerId + ",location:"+ pp.describeLocation();
 			} else {
 				message = message + "\n Chest does not contain enough purestrain coal.";
-				plugin.getLogger().info(prisonerId + " is being freed. Reason: Freed during coal feed, container did not have enough coal.");
-				pearlman.freePearl(pp);
+				String reason = prisonerId + " is being freed. Reason: Freed during coal feed, container did not have enough coal.";
+				pearlman.freePearl(pp, reason);
 				log+="\n freed:"+prisonerId+",reason:"+"nocoal"+",location:"+pp.describeLocation();
 				freedpearls++;
 			}

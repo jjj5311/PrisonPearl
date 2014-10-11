@@ -1,18 +1,15 @@
 package com.untamedears.PrisonPearl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
-import java.util.concurrent.Callable;
 
+import net.minecraft.server.v1_7_R4.EntityPlayer;
 import net.minecraft.server.v1_7_R4.MinecraftServer;
 import net.minecraft.server.v1_7_R4.PlayerInteractManager;
-import net.minecraft.server.v1_7_R4.EntityPlayer;
-
-import org.bukkit.craftbukkit.v1_7_R4.CraftServer;
-
 import net.minecraft.util.com.mojang.authlib.GameProfile;
 
 import org.bukkit.Bukkit;
@@ -28,6 +25,7 @@ import org.bukkit.block.Dispenser;
 import org.bukkit.block.DoubleChest;
 import org.bukkit.block.Furnace;
 import org.bukkit.configuration.Configuration;
+import org.bukkit.craftbukkit.v1_7_R4.CraftServer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
@@ -43,17 +41,18 @@ import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.scheduler.BukkitTask;
 
 class PrisonPearlManager implements Listener {
 	private final PrisonPearlPlugin plugin;
@@ -151,7 +150,8 @@ class PrisonPearlManager implements Listener {
 		String name = pearled.getName();
 		// set off an event
 		if (!prisonPearlEvent(pp, PrisonPearlEvent.Type.NEW, imprisoner)) {
-			pearls.deletePearl(pp);
+			pearls.deletePearl(pp, "Something canceled the creation of the pearl for player " + pp.getImprisonedName() +
+					" uuid: " + pp.getImprisonedId());
 			return false;
 		}
 		pp.markMove();
@@ -184,17 +184,17 @@ class PrisonPearlManager implements Listener {
 		return true;
 	}
 
-	public boolean freePlayer(Player player) {
+	public boolean freePlayer(Player player, String reason) {
 		PrisonPearl pp = pearls.getByImprisoned(player);
-		return pp != null && freePearl(pp);
+		return pp != null && freePearl(pp, reason);
 	}
 
-	public boolean freePearl(PrisonPearl pp) {
+	public boolean freePearl(PrisonPearl pp, String reason) {
 		// set off an event
 		if (!prisonPearlEvent(pp, PrisonPearlEvent.Type.FREED)) {
 			return false;
 		}
-		pearls.deletePearl(pp); // delete the pearl first
+		pearls.deletePearl(pp, reason); // delete the pearl first
 		// unban alts and players if they are allowed to be
 		plugin.checkBan(pp.getImprisonedId());
 		plugin.checkBanForAlts(pp.getImprisonedId());
@@ -251,8 +251,8 @@ class PrisonPearlManager implements Listener {
 		player.getInventory().setItemInHand(null);
 		event.setCancelled(true);
 
-		freePearl(pp);
-		plugin.getLogger().info(pp.getImprisonedName() + "("+pp.getImprisonedId() + ") is being freed. Reason: " + player.getDisplayName() + " threw the pearl.");
+		freePearl(pp, pp.getImprisonedName() + "("+pp.getImprisonedId() + ") is being freed. Reason: " 
+		+ player.getDisplayName() + " threw the pearl.");
 		player.sendMessage("You've freed " + pp.getImprisonedName());
 	}
 
@@ -328,8 +328,7 @@ class PrisonPearlManager implements Listener {
 			return;
 
 		Player player = Bukkit.getPlayer(pp.getImprisonedId());
-		plugin.getLogger().info(pp.getImprisonedName() + "("+pp.getImprisonedId() + ") is being freed. Reason: PrisonPearl item despawned.");
-		freePearl(pp);
+		freePearl(pp, pp.getImprisonedName() + "("+pp.getImprisonedId() + ") is being freed. Reason: PrisonPearl item despawned.");
 	}
 
 	// Free the pearl if its on a chunk that unloads
@@ -348,18 +347,38 @@ class PrisonPearlManager implements Listener {
 			final Player player = Bukkit.getPlayer(pp.getImprisonedId());
 			final Entity entity = e;
 			// doing this in onChunkUnload causes weird things to happen
-			Bukkit.getScheduler().callSyncMethod(plugin, new Callable<Void>() {
-						public Void call() throws Exception {
-							if (freePearl(pp))
+			BukkitTask count = Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
+						public void run(){
+							if (freePearl(pp, pp.getImprisonedName() + "("+
+									pp.getImprisonedId() + ") is being freed. Reason: Chunk with PrisonPearl unloaded."))
 							{
-								plugin.getLogger().info(pp.getImprisonedName() + "("+pp.getImprisonedId() + ") is being freed. Reason: Chunk with PrisonPearl unloaded.");
 								entity.remove();
 							}
-							return null;
+							
 						}
-					});
+					}, plugin.getPPConfig().getChunkUnloadDelay());
 
 			event.setCancelled(true);
+			int x = event.getChunk().getX();
+			int z = event.getChunk().getZ();
+			unloadedPearls.put(x + " " + z + " " + pp.getImprisonedId().toString(), count);
+		}
+	}
+	
+	private Map<String, BukkitTask> unloadedPearls = new HashMap<String, BukkitTask>();
+	@EventHandler(priority = EventPriority.MONITOR)
+	public void onChunkLoad(ChunkLoadEvent event){
+		if (unloadedPearls.isEmpty())
+			return;
+		int x = event.getChunk().getX();
+		int z = event.getChunk().getZ();
+		String want = x + " " + z;
+		for (String cord: unloadedPearls.keySet()){
+			String[] cords = cord.split(" ");
+			String realCord = cords[0] + " " + cords[1];
+			if (want.equals(realCord)){
+				unloadedPearls.get(cord).cancel();
+			}
 		}
 	}
 
@@ -375,8 +394,8 @@ class PrisonPearlManager implements Listener {
 			return;
 
 		Player player = Bukkit.getPlayer(pp.getImprisonedId());
-		plugin.getLogger().info(pp.getImprisonedName() + "("+pp.getImprisonedId() + ") is being freed. Reason: PrisonPearl combusted(lava/fire).");
-		freePearl(pp);
+		String reason = pp.getImprisonedName() + "("+pp.getImprisonedId() + ") is being freed. Reason: PrisonPearl combusted(lava/fire).";
+		freePearl(pp, reason);
 	}
 	
 	

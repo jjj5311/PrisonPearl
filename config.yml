@@ -11,6 +11,7 @@ summon_damage_ticks: 20
 summon_damage_amt: 2
 prison_world: world_the_end
 prison_resetbed: false
+chunk_delay: 1200
 ppsummon_clear_inventory: false
 ppreturn_kills: false
 prison_motd:
