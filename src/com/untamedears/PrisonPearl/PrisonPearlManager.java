@@ -45,7 +45,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
@@ -331,6 +330,7 @@ class PrisonPearlManager implements Listener {
 		freePearl(pp, pp.getImprisonedName() + "("+pp.getImprisonedId() + ") is being freed. Reason: PrisonPearl item despawned.");
 	}
 
+	private Map<String, BukkitTask> unloadedPearls = new HashMap<String, BukkitTask>();
 	// Free the pearl if its on a chunk that unloads
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onChunkUnload(ChunkUnloadEvent event) {
@@ -361,24 +361,10 @@ class PrisonPearlManager implements Listener {
 			event.setCancelled(true);
 			int x = event.getChunk().getX();
 			int z = event.getChunk().getZ();
-			unloadedPearls.put(x + " " + z + " " + pp.getImprisonedId().toString(), count);
-		}
-	}
-	
-	private Map<String, BukkitTask> unloadedPearls = new HashMap<String, BukkitTask>();
-	@EventHandler(priority = EventPriority.MONITOR)
-	public void onChunkLoad(ChunkLoadEvent event){
-		if (unloadedPearls.isEmpty())
-			return;
-		int x = event.getChunk().getX();
-		int z = event.getChunk().getZ();
-		String want = x + " " + z;
-		for (String cord: unloadedPearls.keySet()){
-			String[] cords = cord.split(" ");
-			String realCord = cords[0] + " " + cords[1];
-			if (want.equals(realCord)){
-				unloadedPearls.get(cord).cancel();
-			}
+			String cord = x + " " + z + " " + pp.getImprisonedId().toString();
+			if (unloadedPearls.containsKey(cord))
+				return;
+			unloadedPearls.put(cord, count);
 		}
 	}
 
@@ -588,6 +574,20 @@ class PrisonPearlManager implements Listener {
 			return;
 		pp.markMove();
 		updatePearl(pp, event.getPlayer());
+		// For when a pearl is dropped in an unloaded chunk
+		if (unloadedPearls.isEmpty())
+			return;
+		int x = pp.getLocation().getChunk().getX();
+		int z = pp.getLocation().getChunk().getZ();
+		String want = x + " " + z;
+		for (String cord: unloadedPearls.keySet()){
+			String[] cords = cord.split(" ");
+			String realCord = cords[0] + " " + cords[1];
+			if (want.equals(realCord)){
+				unloadedPearls.get(cord).cancel();
+				unloadedPearls.remove(cord);
+			}
+		}
 	}
 
 	private void updatePearl(PrisonPearl pp, Item item) {
