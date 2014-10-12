@@ -347,21 +347,21 @@ class PrisonPearlManager implements Listener {
 			final Player player = Bukkit.getPlayer(pp.getImprisonedId());
 			final Entity entity = e;
 			// doing this in onChunkUnload causes weird things to happen
-			BukkitTask count = Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
-						public void run(){
-							if (freePearl(pp, pp.getImprisonedName() + "("+
-									pp.getImprisonedId() + ") is being freed. Reason: Chunk with PrisonPearl unloaded."))
-							{
-								entity.remove();
-							}
-							
-						}
-					}, plugin.getPPConfig().getChunkUnloadDelay());
 
 			event.setCancelled(true);
 			UUID uuid = pp.getImprisonedId();
 			if (unloadedPearls.containsKey(uuid))
 				return;
+			BukkitTask count = Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
+				public void run(){
+					if (freePearl(pp, pp.getImprisonedName() + "("+
+							pp.getImprisonedId() + ") is being freed. Reason: Chunk with PrisonPearl unloaded."))
+					{
+						entity.remove();
+					}
+					
+				}
+			}, plugin.getPPConfig().getChunkUnloadDelay());
 			unloadedPearls.put(uuid, count);
 		}
 	}
@@ -575,8 +575,6 @@ class PrisonPearlManager implements Listener {
 		// For when a pearl is dropped in an unloaded chunk
 		if (unloadedPearls.isEmpty())
 			return;
-		int x = pp.getLocation().getChunk().getX();
-		int z = pp.getLocation().getChunk().getZ();
 		UUID want = pp.getImprisonedId();
 		for (UUID uuid: unloadedPearls.keySet()){
 			if (want.equals(uuid)){
