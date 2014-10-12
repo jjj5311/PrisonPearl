@@ -330,7 +330,7 @@ class PrisonPearlManager implements Listener {
 		freePearl(pp, pp.getImprisonedName() + "("+pp.getImprisonedId() + ") is being freed. Reason: PrisonPearl item despawned.");
 	}
 
-	private Map<String, BukkitTask> unloadedPearls = new HashMap<String, BukkitTask>();
+	private Map<UUID, BukkitTask> unloadedPearls = new HashMap<UUID, BukkitTask>();
 	// Free the pearl if its on a chunk that unloads
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onChunkUnload(ChunkUnloadEvent event) {
@@ -359,12 +359,10 @@ class PrisonPearlManager implements Listener {
 					}, plugin.getPPConfig().getChunkUnloadDelay());
 
 			event.setCancelled(true);
-			int x = event.getChunk().getX();
-			int z = event.getChunk().getZ();
-			String cord = x + " " + z + " " + pp.getImprisonedId().toString();
-			if (unloadedPearls.containsKey(cord))
+			UUID uuid = pp.getImprisonedId();
+			if (unloadedPearls.containsKey(uuid))
 				return;
-			unloadedPearls.put(cord, count);
+			unloadedPearls.put(uuid, count);
 		}
 	}
 
@@ -579,13 +577,11 @@ class PrisonPearlManager implements Listener {
 			return;
 		int x = pp.getLocation().getChunk().getX();
 		int z = pp.getLocation().getChunk().getZ();
-		String want = x + " " + z;
-		for (String cord: unloadedPearls.keySet()){
-			String[] cords = cord.split(" ");
-			String realCord = cords[0] + " " + cords[1];
-			if (want.equals(realCord)){
-				unloadedPearls.get(cord).cancel();
-				unloadedPearls.remove(cord);
+		UUID want = pp.getImprisonedId();
+		for (UUID uuid: unloadedPearls.keySet()){
+			if (want.equals(uuid)){
+				unloadedPearls.get(uuid).cancel();
+				unloadedPearls.remove(uuid);
 			}
 		}
 	}
