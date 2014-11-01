@@ -45,6 +45,8 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
@@ -582,6 +584,37 @@ class PrisonPearlManager implements Listener {
 				unloadedPearls.remove(uuid);
 			}
 		}
+	}
+	
+	// Deny pearls traveling to other worlds.
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void worldChangeEvent(PlayerTeleportEvent event){
+		TeleportCause cause = event.getCause();
+		if (!cause.equals(TeleportCause.PLUGIN))
+			return;
+		List<String> denyWorlds = getConfig().getStringList("deny_pearls_worlds");
+		Location previous = event.getFrom();
+		Location to = event.getTo();
+		World newWorld = to.getWorld();
+		if (!denyWorlds.contains(newWorld.getName()))
+			return;
+		
+		Inventory inv = event.getPlayer().getInventory();
+		for (Entry<Integer, ? extends ItemStack> entry :
+			inv.all(Material.ENDER_PEARL).entrySet()) {
+			ItemStack item = entry.getValue();
+			PrisonPearl pp = pearls.getByItemStack(item);
+			if (pp == null) {
+				continue;
+			}
+			pp.markMove();
+			int slot = entry.getKey();
+			inv.clear(slot);
+			previous.getWorld().dropItemNaturally(previous, item);
+		}
+		event.getPlayer().sendMessage(ChatColor.RED + "This world is not allowed " +
+				"to have PrisonPearl's in it. Your prisoner was dropped where " +
+				"you were in the previous world.");
 	}
 
 	private void updatePearl(PrisonPearl pp, Item item) {
