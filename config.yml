@@ -26,3 +26,5 @@ ignore_feed:
   days: 0
   hours: 0
   seconds: 0
+deny_pearls_worlds:
+  - world_nether
