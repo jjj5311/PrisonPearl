@@ -1,11 +1,22 @@
 package com.untamedears.PrisonPearl;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.Callable;
+import java.util.UUID;
+
+import net.minecraft.server.v1_7_R4.EntityPlayer;
+import net.minecraft.server.v1_7_R4.MinecraftServer;
+import net.minecraft.server.v1_7_R4.PlayerInteractManager;
+import net.minecraft.util.com.mojang.authlib.GameProfile;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.BrewingStand;
@@ -14,9 +25,12 @@ import org.bukkit.block.Dispenser;
 import org.bukkit.block.DoubleChest;
 import org.bukkit.block.Furnace;
 import org.bukkit.configuration.Configuration;
+import org.bukkit.craftbukkit.v1_7_R4.CraftServer;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -24,32 +38,39 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityCombustEvent;
 import org.bukkit.event.entity.ItemDespawnEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
-import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.scheduler.BukkitTask;
 
 class PrisonPearlManager implements Listener {
 	private final PrisonPearlPlugin plugin;
 	private final PrisonPearlStorage pearls;
-	
-	public PrisonPearlManager(PrisonPearlPlugin plugin, PrisonPearlStorage pearls) {
+	private EnderExpansion ee;
+
+	public PrisonPearlManager(PrisonPearlPlugin plugin, PrisonPearlStorage pearls, EnderExpansion ee) {
 		this.plugin = plugin;
 		this.pearls = pearls;
-		
+		this.ee = ee;
 		Bukkit.getPluginManager().registerEvents(this, plugin);
 	}
-	
+
 	public boolean imprisonPlayer(Player imprisoned, Player imprisoner) {
-		return imprisonPlayer(imprisoned.getName(), imprisoner);
+		return imprisonPlayer(imprisoned.getUniqueId(), imprisoner);
 	}
-	
+
 	/**
 	 * @param imprisonedname
 	 * @param imprisoner
@@ -60,98 +81,138 @@ class PrisonPearlManager implements Listener {
 	 * @param imprisoner
 	 * @return
 	 */
-	public boolean imprisonPlayer(String imprisonedname, Player imprisoner) {
+	public boolean imprisonPlayer(UUID imprisonedId, Player imprisoner) {
 		World respawnworld = Bukkit.getWorld(getConfig().getString("free_world"));
+		
+		plugin.getAltsList().cacheAltListFor(imprisonedId);
 		
 		// set up the imprisoner's inventory
 		Inventory inv = imprisoner.getInventory();
 		ItemStack stack = null;
 		int stacknum = -1;
-		
+
 		// scan for the smallest stack of normal ender pearls
-		for (Entry<Integer, ? extends ItemStack> entry : inv.all(Material.ENDER_PEARL).entrySet()) {
+		for (Entry<Integer, ? extends ItemStack> entry :
+				inv.all(Material.ENDER_PEARL).entrySet()) {
 			ItemStack newstack = entry.getValue();
 			int newstacknum = entry.getKey();
 			if (newstack.getDurability() == 0) {
 				if (stack != null) {
 					// don't keep a stack bigger than the previous one
-					if (newstack.getAmount() > stack.getAmount())
+					if (newstack.getAmount() > stack.getAmount()) {
 						continue;
+					}
 					// don't keep an identical sized stack in a higher slot
-					if (newstack.getAmount() == stack.getAmount() && newstacknum > stacknum)
+					if (newstack.getAmount() == stack.getAmount() &&
+							newstacknum > stacknum) {
 						continue;
+					}
 				}
-				
-				stack = newstack;	
+
+				stack = newstack;
 				stacknum = entry.getKey();
 			}
 		}
-		
+
 		int pearlnum;
 		ItemStack dropStack = null;
 		if (stacknum == -1) { // no pearl (admin command)
-			pearlnum = inv.firstEmpty(); // give him a new one at the first empty slot
+			// give him a new one at the first empty slot
+			pearlnum = inv.firstEmpty();
 		} else if (stack.getAmount() == 1) { // if he's just got one pearl
 			pearlnum = stacknum; // put the prison pearl there
 		} else {
-			pearlnum = inv.firstEmpty(); // otherwise, put the prison pearl in the first empty slot
+			// otherwise, put the prison pearl in the first empty slot
+			pearlnum = inv.firstEmpty();
 			if (pearlnum > 0) {
-				stack.setAmount(stack.getAmount()-1); // and reduce his stack of pearls by one
+				// and reduce his stack of pearls by one
+				stack.setAmount(stack.getAmount() - 1);
 				inv.setItem(stacknum, stack);
 			} else { // no empty slot?
-				dropStack = new ItemStack(Material.ENDER_PEARL, stack.getAmount()-1);
+				dropStack = new ItemStack(Material.ENDER_PEARL, stack.getAmount() - 1);
 				pearlnum = stacknum; // then overwrite his stack of pearls
 			}
 		}
-		
-		//drop pearls that otherwise would be deleted
+
+		// drop pearls that otherwise would be deleted
 		if (dropStack != null) {
 			imprisoner.getWorld().dropItem(imprisoner.getLocation(), dropStack);
-			Bukkit.getLogger().info(imprisoner.getLocation()+", "+dropStack.getAmount());
+			Bukkit.getLogger().info(
+				imprisoner.getLocation() + ", " + dropStack.getAmount());
 		}
-	
-		PrisonPearl pp = pearls.newPearl(imprisonedname, imprisoner); // create the prison pearl		
-		if (!prisonPearlEvent(pp, PrisonPearlEvent.Type.NEW, imprisoner)) { // set off an event
-			pearls.deletePearl(pp);
+
+		if (!imprisoner.hasPermission("prisonpearl.normal.pearlplayer")) {
 			return false;
 		}
 
-		inv.setItem(pearlnum, new ItemStack(Material.ENDER_PEARL, 1, pp.getID())); // give it to the imprisoner
-		
+		OfflinePlayer pearled = Bukkit.getOfflinePlayer(imprisonedId);
+		// create the prison pearl
+		PrisonPearl pp = pearls.newPearl(pearled, imprisoner);
+		String name = pearled.getName();
+		// set off an event
+		if (!prisonPearlEvent(pp, PrisonPearlEvent.Type.NEW, imprisoner)) {
+			pearls.deletePearl(pp, "Something canceled the creation of the pearl for player " + pp.getImprisonedName() +
+					" uuid: " + pp.getImprisonedId());
+			return false;
+		}
+		pp.markMove();
+
+		// Create the inventory item
+		ItemStack is = new ItemStack(Material.ENDER_PEARL, 1, pp.getID());
+		ItemMeta im = is.getItemMeta();
+		// Rename pearl to that of imprisoned player
+		im.setDisplayName(name);
+		List<String> lore = new ArrayList<String>();
+		// Gives pearl lore that says more info when hovered over
+		lore.add(name + " is held within this pearl");
+		lore.add("UUID: "+pp.getImprisonedId());
+		// Given enchantment effect (durability used because it doesn't affect pearl behaviour)
+		im.addEnchant(Enchantment.DURABILITY, 1, true);
+		im.setLore(lore);
+		is.setItemMeta(im);
+		is.removeEnchantment(Enchantment.DURABILITY);
+		// Give it to the imprisoner
+		inv.setItem(pearlnum, is);
+		// Reason for edit: Gives pearl enchantment effect (distinguishable, unstackable) Gives name of prisoner in inventory.
+
 		if (getConfig().getBoolean("prison_resetbed")) {
-			Player imprisoned = Bukkit.getPlayerExact(imprisonedname);
-			if (imprisoned != null)
-				imprisoned.setBedSpawnLocation(respawnworld.getSpawnLocation()); // clear out the players bed
+			Player imprisoned = Bukkit.getPlayer(imprisonedId);
+			// clear out the players bed
+			if (imprisoned != null) {
+				imprisoned.setBedSpawnLocation(respawnworld.getSpawnLocation());
+			}
 		}
 		return true;
 	}
-	
-	public boolean freePlayer(Player player) {
-		PrisonPearl pp = pearls.getByImprisoned(player);
-        return pp != null && freePearl(pp);
 
-    }
-	
-	public boolean freePearl(PrisonPearl pp) {
-		pearls.deletePearl(pp);
-		if (!prisonPearlEvent(pp, PrisonPearlEvent.Type.FREED)) { // set off an event
-			pearls.addPearl(pp);
+	public boolean freePlayer(Player player, String reason) {
+		PrisonPearl pp = pearls.getByImprisoned(player);
+		return pp != null && freePearl(pp, reason);
+	}
+
+	public boolean freePearl(PrisonPearl pp, String reason) {
+		// set off an event
+		if (!prisonPearlEvent(pp, PrisonPearlEvent.Type.FREED)) {
 			return false;
 		}
-			
+		pearls.deletePearl(pp, reason); // delete the pearl first
+		// unban alts and players if they are allowed to be
+		plugin.checkBan(pp.getImprisonedId());
+		plugin.checkBanForAlts(pp.getImprisonedId());
 		return true;
 	}
 
 	// Announce the person in a pearl when a player holds it
-	@EventHandler(priority=EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void onItemHeldChange(PlayerItemHeldEvent event) {
+
 		Inventory inv = event.getPlayer().getInventory();
 		ItemStack item = inv.getItem(event.getNewSlot());
 		ItemStack newitem = announcePearl(event.getPlayer(), item);
 		if (newitem != null)
 			inv.setItem(event.getNewSlot(), newitem);
 	}
-	
+
 	private ItemStack announcePearl(Player player, ItemStack item) {
 		if (item == null)
 			return null;
@@ -159,27 +220,29 @@ class PrisonPearlManager implements Listener {
 		if (item.getType() == Material.ENDER_PEARL && item.getDurability() != 0) {
 			PrisonPearl pp = pearls.getByID(item.getDurability());
 
-			if (pp != null) {
-				player.sendMessage(ChatColor.GREEN+"Prison Pearl - " + pp.getImprisonedName());
-			} else {
-				item.setDurability((short)0);
-				return item;
+			if (pp == null) {
+				return new ItemStack(Material.ENDER_PEARL, 1);
 			}
+			pp.markMove();
 		}
-		
+
 		return null;
 	}
-	
+
 	// Free pearls when right clicked
-	@EventHandler(priority=EventPriority.LOW)
+	@EventHandler(priority = EventPriority.LOW)
 	public void onPlayerInteract(PlayerInteractEvent event) {
+
 		PrisonPearl pp = pearls.getByItemStack(event.getItem());
 		if (pp == null)
 			return;
+		pp.markMove();
 
 		if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 			Material m = event.getClickedBlock().getType();
-			if (m == Material.CHEST || m == Material.WORKBENCH || m == Material.FURNACE || m == Material.DISPENSER || m == Material.BREWING_STAND)
+			if (m == Material.CHEST || m == Material.WORKBENCH
+					|| m == Material.FURNACE || m == Material.DISPENSER
+					|| m == Material.BREWING_STAND)
 				return;
 		} else if (event.getAction() != Action.RIGHT_CLICK_AIR) {
 			return;
@@ -188,173 +251,421 @@ class PrisonPearlManager implements Listener {
 		Player player = event.getPlayer();
 		player.getInventory().setItemInHand(null);
 		event.setCancelled(true);
-		
-		freePearl(pp);
+
+		freePearl(pp, pp.getImprisonedName() + "("+pp.getImprisonedId() + ") is being freed. Reason: " 
+		+ player.getDisplayName() + " threw the pearl.");
 		player.sendMessage("You've freed " + pp.getImprisonedName());
 	}
-	
-	// Free pearls when a player leaves
-	@EventHandler(priority=EventPriority.MONITOR)
-	public void onPlayerQuit(PlayerQuitEvent event) {
-		Inventory inv = event.getPlayer().getInventory();
-		for (Entry<Integer, ? extends ItemStack> entry : inv.all(Material.ENDER_PEARL).entrySet()) {
-			int slot = entry.getKey();
-			PrisonPearl pp = pearls.getByItemStack(entry.getValue());
-			if (pp == null)
-				continue;
 
-			if (freePearl(pp))
-				inv.setItem(slot, null);
+	// Called from CombatTagListener.onNpcDespawn
+	public void handleNpcDespawn(UUID plruuid, Location loc) {
+		World world = loc.getWorld();
+		Player player = plugin.getServer().getPlayer(plruuid);
+		if (player == null) { // If player is offline
+			MinecraftServer server = ((CraftServer)plugin.getServer()).getServer();
+			GameProfile prof = new GameProfile(plruuid, null);
+			EntityPlayer entity = new EntityPlayer(
+				server, server.getWorldServer(0), prof,
+				new PlayerInteractManager(server.getWorldServer(0)));
+			player = (entity == null) ? null : (Player) entity.getBukkitEntity();
+			if (player == null) {
+				return;
+			}
+			player.loadData();
 		}
+
+		Inventory inv = player.getInventory();
+		int end = inv.getSize();
+		for (int slot = 0; slot < end; ++slot) {
+			ItemStack item = inv.getItem(slot);
+			if (item == null) {
+				continue;
+			}
+			if (!item.getType().equals(Material.ENDER_PEARL)) {
+			   continue;
+			}
+			PrisonPearl pp = pearls.getByItemStack(item);
+			if (pp==null){
+				continue;
+			}
+			inv.clear(slot);
+			world.dropItemNaturally(loc, item);  // drops pearl to ground.
+		}
+		player.saveData();
 	}
-	
+
+	// Drops a pearl when a player leaves.
+	@EventHandler(priority = EventPriority.MONITOR)
+	public void onPlayerQuit(PlayerQuitEvent event) {
+		Player imprisoner = event.getPlayer();
+		CombatTagManager ctm = plugin.getCombatTagManager();
+		if (ctm.isCombatTagged(imprisoner)) { // if player is tagged
+			return;
+		}
+		Location loc = imprisoner.getLocation();
+		World world = imprisoner.getWorld();
+		Inventory inv = imprisoner.getInventory();
+		for (Entry<Integer, ? extends ItemStack> entry :
+				inv.all(Material.ENDER_PEARL).entrySet()) {
+			ItemStack item = entry.getValue();
+			PrisonPearl pp = pearls.getByItemStack(item);
+			if (pp == null) {
+				continue;
+			}
+			pp.markMove();
+			int slot = entry.getKey();
+			inv.clear(slot);
+			world.dropItemNaturally(loc, item);
+		}
+		imprisoner.saveData();
+	}
+
 	// Free the pearl if it despawns
-	@EventHandler(priority=EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void onItemDespawn(ItemDespawnEvent event) {
-		PrisonPearl pp = pearls.getByItemStack(event.getEntity().getItemStack());
+		PrisonPearl pp = pearls
+				.getByItemStack(event.getEntity().getItemStack());
 		if (pp == null)
 			return;
 
-		freePearl(pp);
+		Player player = Bukkit.getPlayer(pp.getImprisonedId());
+		freePearl(pp, pp.getImprisonedName() + "("+pp.getImprisonedId() + ") is being freed. Reason: PrisonPearl item despawned.");
 	}
 
+	private Map<UUID, BukkitTask> unloadedPearls = new HashMap<UUID, BukkitTask>();
 	// Free the pearl if its on a chunk that unloads
-	@EventHandler(priority=EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void onChunkUnload(ChunkUnloadEvent event) {
 		for (Entity e : event.getChunk().getEntities()) {
 			if (!(e instanceof Item))
 				continue;
-			
-			final PrisonPearl pp = pearls.getByItemStack(((Item)e).getItemStack());
-			if (pp == null)
-				continue;	
 
+			final PrisonPearl pp = pearls.getByItemStack(
+				((Item) e).getItemStack());
+			if (pp == null) {
+				continue;
+			}
+
+			final Player player = Bukkit.getPlayer(pp.getImprisonedId());
 			final Entity entity = e;
-			Bukkit.getScheduler().callSyncMethod(plugin, new Callable<Void>() { // doing this in onChunkUnload causes weird things to happen
-				public Void call() throws Exception {
-					if (freePearl(pp))
-						entity.remove();
-					return null;
-				}	
-			});
+			// doing this in onChunkUnload causes weird things to happen
 
 			event.setCancelled(true);
+			UUID uuid = pp.getImprisonedId();
+			if (unloadedPearls.containsKey(uuid))
+				return;
+			BukkitTask count = Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
+				public void run(){
+					if (freePearl(pp, pp.getImprisonedName() + "("+
+							pp.getImprisonedId() + ") is being freed. Reason: Chunk with PrisonPearl unloaded."))
+					{
+						entity.remove();
+					}
+					
+				}
+			}, plugin.getPPConfig().getChunkUnloadDelay());
+			unloadedPearls.put(uuid, count);
 		}
 	}
 
 	// Free the pearl if it combusts in lava/fire
-	@EventHandler(priority=EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void onEntityCombustEvent(EntityCombustEvent event) {
 		if (!(event.getEntity() instanceof Item))
 			return;
 
-		PrisonPearl pp = pearls.getByItemStack(((Item)event.getEntity()).getItemStack());
+		PrisonPearl pp = pearls.getByItemStack(
+			((Item) event.getEntity()).getItemStack());
 		if (pp == null)
 			return;
 
-		freePearl(pp);
+		Player player = Bukkit.getPlayer(pp.getImprisonedId());
+		String reason = pp.getImprisonedName() + "("+pp.getImprisonedId() + ") is being freed. Reason: PrisonPearl combusted(lava/fire).";
+		freePearl(pp, reason);
 	}
 	
+	
+	// Handle inventory dragging properly.
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onInventoryDrag(InventoryDragEvent event) {
+		if(event.isCancelled())
+			return;
+		
+		Map<Integer, ItemStack> items = event.getNewItems();
+		
+		for(Integer slot : items.keySet()) {
+			ItemStack item = items.get(slot);
+			
+			PrisonPearl pearl = pearls.getByItemStack(item);
+			
+			if(pearl != null) {
+				boolean clickedTop = event.getView().convertSlot(slot) == slot;
+				
+				InventoryHolder holder = clickedTop ? event.getView().getTopInventory().getHolder() : event.getView().getBottomInventory().getHolder();
+				
+				pearl.markMove();
+				updatePearlHolder(pearl, holder, event);
+				
+				if(event.isCancelled()) {
+					return;
+				}
+			}
+		}
+	}
+
 	// Track the location of a pearl
 	// Forbid pearls from being put in storage minecarts
-	@EventHandler(priority=EventPriority.NORMAL)
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onInventoryClick(InventoryClickEvent event) {
+		if(event.isCancelled())
+			return;
+		
 		// announce an prisonpearl if it is clicked
-		ItemStack newitem = announcePearl((Player)event.getWhoClicked(), event.getCurrentItem());
+		ItemStack newitem = announcePearl(
+			(Player) event.getWhoClicked(), event.getCurrentItem());
 		if (newitem != null)
 			event.setCurrentItem(newitem);
 		
-		
-		PrisonPearl pp;
-		if (!event.isShiftClick()) {
-			pp = pearls.getByItemStack(event.getCursor());
-		} else {
-			pp = pearls.getByItemStack(event.getCurrentItem());
+		if(event.getAction() == InventoryAction.COLLECT_TO_CURSOR
+				|| event.getAction() == InventoryAction.PICKUP_ALL
+				|| event.getAction() == InventoryAction.PICKUP_HALF
+				|| event.getAction() == InventoryAction.PICKUP_ONE) {
+			PrisonPearl pearl = pearls.getByItemStack(event.getCurrentItem());
+			
+			if(pearl != null) {
+				pearl.markMove();
+				updatePearl(pearl, (Player) event.getWhoClicked(), true);
+			}
 		}
-		
-		if (pp == null)
-			return;
-		
-		InventoryView view = event.getView();
-		int rawslot = event.getRawSlot();
-		boolean top = view.convertSlot(rawslot) == rawslot; // this means in the top inventory
-		if (event.isShiftClick()) // for shift clicks, a click in the bottom moves item to the top and vice versa
-			top = !top; // so flip it
-		
-		InventoryHolder holder;
-		if (top) { 
-			holder = view.getTopInventory().getHolder();
-		} else {
-			holder = view.getBottomInventory().getHolder();
+		else if(event.getAction() == InventoryAction.PLACE_ALL
+				|| event.getAction() == InventoryAction.PLACE_SOME
+				|| event.getAction() == InventoryAction.PLACE_ONE) {	
+			PrisonPearl pearl = pearls.getByItemStack(event.getCursor());
+			
+			if(pearl != null) {
+				boolean clickedTop = event.getView().convertSlot(event.getRawSlot()) == event.getRawSlot();
+				
+				InventoryHolder holder = clickedTop ? event.getView().getTopInventory().getHolder() : event.getView().getBottomInventory().getHolder();
+				if (holder==null){
+					Player player=pearl.getHolderPlayer();
+					pearl.markMove();
+					ee.updateEnderStoragePrison(pearl, event, player.getTargetBlock(null, 5).getLocation());
+				}
+				else{
+				pearl.markMove();
+				updatePearlHolder(pearl, holder, event);
+				}
+			}
 		}
+		else if(event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {			
+			PrisonPearl pearl = pearls.getByItemStack(event.getCurrentItem());
+			
+			if(pearl != null) {
+				boolean clickedTop = event.getView().convertSlot(event.getRawSlot()) == event.getRawSlot();
+				
+				InventoryHolder holder = !clickedTop ? event.getView().getTopInventory().getHolder() : event.getView().getBottomInventory().getHolder();
+				if (holder==null){
+					Player player=pearl.getHolderPlayer();
+					pearl.markMove();
+					ee.updateEnderStoragePrison(pearl, event, player.getTargetBlock(null, 5).getLocation());
+				}
+				else if(holder.getInventory().firstEmpty() >= 0) {
+					pearl.markMove();
+					updatePearlHolder(pearl, holder, event);
+				}
+			}
+		}
+		else if(event.getAction() == InventoryAction.HOTBAR_SWAP) {
+			PlayerInventory playerInventory = event.getWhoClicked().getInventory();
+			PrisonPearl pearl = pearls.getByItemStack(playerInventory.getItem(event.getHotbarButton()));
+			
+			if(pearl != null) {
+				boolean clickedTop = event.getView().convertSlot(event.getRawSlot()) == event.getRawSlot();
+				
+				InventoryHolder holder = clickedTop ? event.getView().getTopInventory().getHolder() : event.getView().getBottomInventory().getHolder();
+				
+				pearl.markMove();
+				updatePearlHolder(pearl, holder, event);
+			}
+			
+			if(event.isCancelled())
+				return;
+			
+			pearl = pearls.getByItemStack(event.getCurrentItem());
+			
+			if(pearl != null) {
+				pearl.markMove();
+				updatePearl(pearl, (Player) event.getWhoClicked());
+			}
+		}
+		else if (event.getAction() == InventoryAction.SWAP_WITH_CURSOR) {
+			PrisonPearl pearl = pearls.getByItemStack(event.getCursor());
+			
+			if(pearl != null) {
+				boolean clickedTop = event.getView().convertSlot(event.getRawSlot()) == event.getRawSlot();
+				
+				InventoryHolder holder = clickedTop ? event.getView().getTopInventory().getHolder() : event.getView().getBottomInventory().getHolder();
+				
+				pearl.markMove();
+				updatePearlHolder(pearl, holder, event);
+			}
+			
+			if(event.isCancelled())
+				return;
+			
+			pearl = pearls.getByItemStack(event.getCurrentItem());
+			
+			if(pearl != null) {
+				pearl.markMove();
+				updatePearl(pearl, (Player) event.getWhoClicked(), true);
+			}
+		}
+		else if(event.getAction() == InventoryAction.DROP_ALL_CURSOR
+				|| event.getAction() == InventoryAction.DROP_ALL_SLOT
+				|| event.getAction() == InventoryAction.DROP_ONE_CURSOR
+				|| event.getAction() == InventoryAction.DROP_ONE_SLOT) {
+			// Handled by onItemSpawn
+		}
+		else {
+			if(pearls.getByItemStack(event.getCurrentItem()) != null || pearls.getByItemStack(event.getCursor()) != null) {
+				((Player) event.getWhoClicked()).sendMessage(ChatColor.RED + "Error: PrisonPearl doesn't support this inventory functionality quite yet!");
+				
+				event.setCancelled(true);
+			}
+		}
+	}
+	
+	private void updatePearlHolder(PrisonPearl pearl, InventoryHolder holder, Cancellable event) {
 		
 		if (holder instanceof Chest) {
-			updatePearl(pp, (Chest)holder);
+			updatePearl(pearl, (Chest) holder);
 		} else if (holder instanceof DoubleChest) {
-			updatePearl(pp, (Chest)((DoubleChest)holder).getLeftSide());
+			updatePearl(pearl, (Chest) ((DoubleChest) holder).getLeftSide());
 		} else if (holder instanceof Furnace) {
-			updatePearl(pp, (Furnace)holder);
+			updatePearl(pearl, (Furnace) holder);
 		} else if (holder instanceof Dispenser) {
-			updatePearl(pp, (Dispenser)holder);
+			updatePearl(pearl, (Dispenser) holder);
 		} else if (holder instanceof BrewingStand) {
-			updatePearl(pp, (BrewingStand)holder);
+			updatePearl(pearl, (BrewingStand) holder);
 		} else if (holder instanceof Player) {
-			updatePearl(pp, (Player)holder);
-		} else {
+			updatePearl(pearl, (Player) holder);
+		}else {
 			event.setCancelled(true);
 		}
 	}
 	
+
 	// Track the location of a pearl if it spawns as an item for any reason
-	@EventHandler(priority=EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void onItemSpawn(ItemSpawnEvent event) {
 		Item item = event.getEntity();
 		PrisonPearl pp = pearls.getByItemStack(item.getItemStack());
 		if (pp == null)
 			return;
-		
+		pp.markMove();
 		updatePearl(pp, item);
 	}
-	
+
 	// Track the location of a pearl if a player picks it up
-	@EventHandler(priority=EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void onPlayerPickupItem(PlayerPickupItemEvent event) {
 		PrisonPearl pp = pearls.getByItemStack(event.getItem().getItemStack());
 		if (pp == null)
 			return;
-		
+		pp.markMove();
 		updatePearl(pp, event.getPlayer());
+		// For when a pearl is dropped in an unloaded chunk
+		if (unloadedPearls.isEmpty())
+			return;
+		UUID want = pp.getImprisonedId();
+		for (UUID uuid: unloadedPearls.keySet()){
+			if (want.equals(uuid)){
+				unloadedPearls.get(uuid).cancel();
+				unloadedPearls.remove(uuid);
+			}
+		}
 	}
 	
+	// Deny pearls traveling to other worlds.
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void worldChangeEvent(PlayerTeleportEvent event){
+		TeleportCause cause = event.getCause();
+		if (!cause.equals(TeleportCause.PLUGIN))
+			return;
+		List<String> denyWorlds = getConfig().getStringList("deny_pearls_worlds");
+		Location previous = event.getFrom();
+		Location to = event.getTo();
+		World newWorld = to.getWorld();
+		if (!denyWorlds.contains(newWorld.getName()))
+			return;
+		
+		Inventory inv = event.getPlayer().getInventory();
+		for (Entry<Integer, ? extends ItemStack> entry :
+			inv.all(Material.ENDER_PEARL).entrySet()) {
+			ItemStack item = entry.getValue();
+			PrisonPearl pp = pearls.getByItemStack(item);
+			if (pp == null) {
+				continue;
+			}
+			pp.markMove();
+			int slot = entry.getKey();
+			inv.clear(slot);
+			previous.getWorld().dropItemNaturally(previous, item);
+		}
+		event.getPlayer().sendMessage(ChatColor.RED + "This world is not allowed " +
+				"to have PrisonPearl's in it. Your prisoner was dropped where " +
+				"you were in the previous world.");
+	}
+
 	private void updatePearl(PrisonPearl pp, Item item) {
 		pp.setHolder(item);
 		pearls.markDirty();
-		Bukkit.getPluginManager().callEvent(new PrisonPearlEvent(pp, PrisonPearlEvent.Type.DROPPED));
+		Bukkit.getPluginManager().callEvent(
+				new PrisonPearlEvent(pp, PrisonPearlEvent.Type.DROPPED));
 	}
-	
+
 	private void updatePearl(PrisonPearl pp, Player player) {
-		pp.setHolder(player);
-		pearls.markDirty();
-		Bukkit.getPluginManager().callEvent(new PrisonPearlEvent(pp, PrisonPearlEvent.Type.HELD));
+	    updatePearl(pp, player, false);
 	}
-	
-	private <ItemBlock extends InventoryHolder & BlockState> void updatePearl(PrisonPearl pp, ItemBlock block) {
+
+	private void updatePearl(PrisonPearl pp, Player player, boolean isOnCursor) {
+		if (isOnCursor) {
+			pp.setCursorHolder(player);
+		} else {
+			pp.setHolder(player);
+		}
+		pearls.markDirty();
+		Bukkit.getPluginManager().callEvent(
+				new PrisonPearlEvent(pp, PrisonPearlEvent.Type.HELD));
+	}
+
+	private <ItemBlock extends InventoryHolder & BlockState> void updatePearl(
+			PrisonPearl pp, ItemBlock block) {
 		pp.setHolder(block);
 		pearls.markDirty();
-		Bukkit.getPluginManager().callEvent(new PrisonPearlEvent(pp, PrisonPearlEvent.Type.HELD));
+		Bukkit.getPluginManager().callEvent(
+				new PrisonPearlEvent(pp, PrisonPearlEvent.Type.HELD));
 	}
 	
+	
+
 	private boolean prisonPearlEvent(PrisonPearl pp, PrisonPearlEvent.Type type) {
 		return prisonPearlEvent(pp, type, null);
 	}
-	
-	private boolean prisonPearlEvent(PrisonPearl pp, PrisonPearlEvent.Type type, Player imprisoner) {
+
+	private boolean prisonPearlEvent(PrisonPearl pp,
+			PrisonPearlEvent.Type type, Player imprisoner) {
 		PrisonPearlEvent event = new PrisonPearlEvent(pp, type, imprisoner);
 		Bukkit.getPluginManager().callEvent(event);
 		return !event.isCancelled();
 	}
-	
+	public boolean prisonCommandEvent(String command){
+		PrisonCommandEvent event= new PrisonCommandEvent(command);
+		Bukkit.getPluginManager().callEvent(event);
+		return !event.isCancelled();
+	}
 	private Configuration getConfig() {
 		return plugin.getConfig();
 	}
+
 }

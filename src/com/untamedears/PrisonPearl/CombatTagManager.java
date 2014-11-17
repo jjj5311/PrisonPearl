@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 import com.trc202.CombatTag.CombatTag;
 import com.trc202.CombatTagApi.CombatTagApi;
 
-@SuppressWarnings("ALL")
+
 class CombatTagManager {
 	private CombatTagApi combatTagApi;
 	private boolean combatTagEnabled = false;
@@ -26,19 +26,19 @@ class CombatTagManager {
     }
 	
 	public boolean isCombatTagged(Player player) {
-        return combatTagEnabled && combatTagApi != null && combatTagApi.isInCombat(player);
+        return combatTagEnabled && combatTagApi != null && combatTagApi.isInCombat(player.getName());
     }
 	
 	public boolean isCombatTagged(String playerName) {
 		return combatTagEnabled && combatTagApi != null && combatTagApi.isInCombat(playerName);
 	}
 	
-	public String getNPCPlayerName(Entity player) {
-		if (combatTagEnabled && combatTagApi != null) {
-			if (combatTagApi.isNPC(player)) {
-				return combatTagApi.getNPCPlayerName(player);
-			}
-		}
-		return "";
-	}
+//	public String getNPCPlayerName(Entity player) {
+//		if (combatTagEnabled && combatTagApi != null) {
+//			if (combatTagApi.isNPC(player)) {
+//				return plugin.getPlayerName(player);
+//			}
+//		}
+//		return "";
+//	}
 }

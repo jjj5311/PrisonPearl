@@ -1,67 +1,116 @@
 package com.untamedears.PrisonPearl;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 
-class AltsList {
-	private HashMap<String, String[]> altsHash;
-	private boolean initialised = false;
-	
-	public AltsList() {
+class AltsList implements Listener {
+	private HashMap<UUID, List<UUID>> altsHash;
+	private PrisonPearlPlugin plugin_;
+
+	public AltsList(PrisonPearlPlugin plugin) {
+		plugin_ = plugin;
+		altsHash = new HashMap<UUID, List<UUID>>();
 	}
-	
-	public void load(File file) {
-		try {
-			loadAlts(file);
-			initialised = true;
-		} catch (IOException e) {
-			e.printStackTrace();
-			Bukkit.getLogger().info("Failed to load file!");
-			initialised = false;
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onAltsListUpdate(AltsListEvent event) {
+			PrisonPearlPlugin
+					.info("Grabbing alts for players");
+		final List<UUID> altsList = event.getAltsList();
+		// Save the old alt lists in their entirety to reduce all the cross
+		// checking
+		// players for existence within the Set.
+		final Set<List<UUID>> banListsToCheck = new HashSet<List<UUID>>(
+				altsList.size());
+		final List<UUID> normalizedList = new ArrayList<UUID>(altsList.size());
+		for (UUID playerUUID : altsList) {
+			normalizedList.add(playerUUID);
+			altsHash.put(playerUUID, normalizedList);
+			banListsToCheck.add(altsHash.get(playerUUID));
 		}
-	}
-	
-	private void loadAlts(File file) throws IOException {
-		altsHash = new HashMap<String, String[]>();
-		FileInputStream fis;
-		fis = new FileInputStream(file);
-		BufferedReader br = new BufferedReader(new InputStreamReader(fis));
-		String line;
-		while ((line = br.readLine()) != null) {
-			if (line.length() > 1) {
-				String parts[] = line.split(" ");
-				String[] newString = new String[parts.length];
-                System.arraycopy(parts, 0, newString, 0, parts.length);
-                for (String part : parts) {
-                    altsHash.put(part, newString);
-                }
+		// Unroll the ban lists into the playerBansToCheck. Only need a single
+		// account from the banlist we just built to check it.
+		final Set<UUID> playerBansToCheck = new HashSet<UUID>(
+				banListsToCheck.size() * 10);
+		playerBansToCheck.add(normalizedList.get(0));
+		for (List<UUID> banList : banListsToCheck) {
+			playerBansToCheck.addAll(banList);
+		}
+		// Check each player for bans, removing their alt list from the check
+		// list
+		// after they have been checked.
+		int bannedCount = 0, unbannedCount = 0, total = 0, result;
+		while (!playerBansToCheck.isEmpty()) {
+			final UUID playerUUID = playerBansToCheck.iterator().next();
+			final List<UUID> thisAltList = altsHash.get(playerUUID);
+			if (thisAltList == null) {
+				playerBansToCheck.remove(playerUUID);
+				continue;
+			}
+			playerBansToCheck.removeAll(thisAltList);
+			for (UUID altUUID : thisAltList) {
+				result = plugin_.checkBan(altUUID);
+				if (result == 2)
+					bannedCount++;
+				else if (result == 1)
+					unbannedCount++;
+				total++;
 			}
 		}
+		PrisonPearlPlugin.info(bannedCount + " players were banned, " + unbannedCount + " were unbanned out of " + total + " accounts.");
 	}
-	
-	public String[] getAltsArray(String name){
-		if (initialised && altsHash.containsKey(name)) {
-			String[] names = altsHash.get(name);
-			String[] alts = new String[names.length-1];
-			for (int i = 0, j = 0; i < names.length; i++) {
-				if (!names[i].equals(name)) {
-					alts[j] = names[i];
-					j++;
-				}
-			}
-			return alts;
+
+	public void queryForUpdatedAltLists(List<UUID> playersToCheck) {
+		// Fires the RequestAltsListEvent event with the list of players to
+		// check. This event won't contain results upon return. It is up to
+		// the upstream event handler to fire the AltsListEvent synchronously
+		// back to this class for each updated alts list to provide results.
+		Bukkit.getServer()
+				.getPluginManager()
+				.callEvent(
+						new RequestAltsListEvent(new ArrayList<UUID>(
+								playersToCheck)));
+	}
+
+	public void cacheAltListFor(UUID playerUUID) {
+		if (altsHash.containsKey(playerUUID)) {
+			return;
 		}
-		return new String[0];
+		List<UUID> singleton = new ArrayList<UUID>(1);
+		singleton.add(playerUUID);
+		Bukkit.getServer().getPluginManager()
+				.callEvent(new RequestAltsListEvent(singleton));
 	}
-	
-	public Set<String> getAllNames() {
+
+	public UUID[] getAltsArray(UUID uuid) {
+		if (!altsHash.containsKey(uuid)){
+			List<UUID> uuids = new ArrayList<UUID>();
+			uuids.add(uuid);
+			queryForUpdatedAltLists(uuids);
+		}
+		List<UUID> uuids = altsHash.get(uuid);
+		if (uuids == null || uuids.size() == 0){
+			return new UUID[0];
+		}
+		List<UUID> alts = new ArrayList<UUID>(uuids.size() - 1);
+		for (UUID altUUID : uuids) {
+			if (!altUUID.equals(uuid)) {
+				alts.add(altUUID);
+			}
+		}
+		return alts.toArray(new UUID[alts.size()]);
+	}
+
+	public Set<UUID> getAllNames() {
 		return altsHash.keySet();
 	}
 }

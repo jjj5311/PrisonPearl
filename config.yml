@@ -9,11 +9,22 @@ prison_musthotbar: true
 summon_damage_radius: 20
 summon_damage_ticks: 20
 summon_damage_amt: 2
-summon_repearl_range: 100
 prison_world: world_the_end
 prison_resetbed: false
+chunk_delay: 1200
+ppsummon_clear_inventory: false
+ppreturn_kills: false
 prison_motd:
    - You are trapped in this bleak and endless world
    - by a prison pearl.
    - Type /pplocate to locate your pearl.
 save_ticks: 2400
+upkeep:
+  resource: 263
+  quantity: 4
+ignore_feed:
+  days: 0
+  hours: 0
+  seconds: 0
+deny_pearls_worlds:
+  - world_nether

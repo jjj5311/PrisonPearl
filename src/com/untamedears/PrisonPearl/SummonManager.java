@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -25,14 +26,20 @@ public class SummonManager implements Listener, SaveLoad {
 	private final PrisonPearlPlugin plugin;
 	private final PrisonPearlStorage pearls;
 	
-	private final Map<String, Summon> summons;
+	private final Map<UUID, Summon> summons;
 	private boolean dirty;
+    private final boolean canSpeakDefault;
+    private final boolean canDamageDefault;
+    private final boolean canBreakDefault;
 	
 	public SummonManager(PrisonPearlPlugin plugin, PrisonPearlStorage pearls) {
 		this.plugin = plugin;
 		this.pearls = pearls;
-		
-		summons = new HashMap<String, Summon>();
+        canSpeakDefault = plugin.getConfig().getBoolean("can_speak_default", true);
+        canDamageDefault = plugin.getConfig().getBoolean("can_damage_default", true);
+        canBreakDefault = plugin.getConfig().getBoolean("can_break_default", true);
+
+		summons = new HashMap<UUID, Summon>();
 		
 		Bukkit.getPluginManager().registerEvents(this, plugin);
 		Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
@@ -53,20 +60,21 @@ public class SummonManager implements Listener, SaveLoad {
 		String line;
 		while ((line = br.readLine()) != null) {
 			String[] parts = line.split(" ");
-			String name = parts[0];
+			String idString = parts[0];
 			Location loc = new Location(Bukkit.getWorld(parts[1]), Integer.parseInt(parts[2]), Integer.parseInt(parts[3]), Integer.parseInt(parts[4]));
 			int dist = parts.length >= 6 ? Integer.parseInt(parts[5]) : plugin.getConfig().getInt("summon_damage_radius");
             int damage = parts.length >= 7 ? Integer.parseInt(parts[6]) : plugin.getConfig().getInt("summon_damage_amt");
-            boolean canSpeak = parts.length >= 8 ? Boolean.parseBoolean(parts[7]) : true;
-            boolean canDamage = parts.length >= 9 ? Boolean.parseBoolean(parts[8]) : true;
-            boolean canBreak = parts.length == 10 ? Boolean.parseBoolean(parts[9]) : true;
-            System.out.println(name + " " + loc + " " + dist + " " + damage + " " + canSpeak + " " + canDamage + " " + canBreak);
+            boolean canSpeak = parts.length >= 8 ? Boolean.parseBoolean(parts[7]) : canSpeakDefault;
+            boolean canDamage = parts.length >= 9 ? Boolean.parseBoolean(parts[8]) : canDamageDefault;
+            boolean canBreak = parts.length == 10 ? Boolean.parseBoolean(parts[9]) : canBreakDefault;
+            System.out.println(idString + " " + loc + " " + dist + " " + damage + " " + canSpeak + " " + canDamage + " " + canBreak);
 
+            UUID id = UUID.fromString(idString);
 			
-			if (!pearls.isImprisoned(name))
+			if (!pearls.isImprisoned(id))
 				continue;
 			
-			summons.put(name, new Summon(name, loc, dist, damage, canSpeak, canDamage, canBreak));
+			summons.put(id, new Summon(id, loc, dist, damage, canSpeak, canDamage, canBreak));
 		}
 		
 		fis.close();
@@ -77,10 +85,10 @@ public class SummonManager implements Listener, SaveLoad {
 		FileOutputStream fos = new FileOutputStream(file);
 		BufferedWriter br = new BufferedWriter(new OutputStreamWriter(fos));
 		
-		for (Entry<String, Summon> entry : summons.entrySet()) {
+		for (Entry<UUID, Summon> entry : summons.entrySet()) {
 			Summon summon = entry.getValue();
 			Location loc = summon.getReturnLocation();
-			br.append(summon.getSummonedName()).append(" ").append(loc.getWorld().getName()).append(" ").append(String.valueOf(loc.getBlockX())).append(" ").append(String.valueOf(loc.getBlockY())).append(" ").append(String.valueOf(loc.getBlockZ())).append(" ").append(String.valueOf(summon.getAllowedDistance())).append(" ").append(String.valueOf(summon.getDamageAmount())).append(" ").append(String.valueOf(summon.isCanSpeak())).append(" ").append(String.valueOf(summon.isCanDealDamage())).append(" ").append(String.valueOf(summon.isCanBreakBlocks())).append("\n");
+			br.append(summon.getSummonedId().toString()).append(" ").append(loc.getWorld().getName()).append(" ").append(String.valueOf(loc.getBlockX())).append(" ").append(String.valueOf(loc.getBlockY())).append(" ").append(String.valueOf(loc.getBlockZ())).append(" ").append(String.valueOf(summon.getAllowedDistance())).append(" ").append(String.valueOf(summon.getDamageAmount())).append(" ").append(String.valueOf(summon.isCanSpeak())).append(" ").append(String.valueOf(summon.isCanDealDamage())).append(" ").append(String.valueOf(summon.isCanBreakBlocks())).append("\n");
 		}
 		
 		br.flush();
@@ -89,12 +97,13 @@ public class SummonManager implements Listener, SaveLoad {
 	}
 	
 	private void inflictSummonDamage() {
-		Iterator<Entry<String, Summon>> i = summons.entrySet().iterator();
+        Map<Player, Double> inflictDmg = new HashMap<Player, Double>();
+		Iterator<Entry<UUID, Summon>> i = summons.entrySet().iterator();
 		while (i.hasNext()) {
 			Summon summon = i.next().getValue();
-			PrisonPearl pp = pearls.getByImprisoned(summon.getSummonedName());
+			PrisonPearl pp = pearls.getByImprisoned(summon.getSummonedId());
 			if (pp == null) {
-				System.err.println("Somehow " + summon.getSummonedName() + " was summoned but isn't imprisoned");
+				System.err.println("Somehow " + summon.getSummonedId() + " was summoned but isn't imprisoned");
 				i.remove();
 				dirty = true;
 				continue;
@@ -107,9 +116,15 @@ public class SummonManager implements Listener, SaveLoad {
 			Location pploc = pp.getLocation();
 			Location playerloc = player.getLocation();
 			
-			if (pploc.getWorld() != playerloc.getWorld() || pploc.distance(playerloc) > summon.getAllowedDistance())
-				player.damage(summon.getDamageAmount());
+			if (pploc.getWorld() != playerloc.getWorld() || pploc.distance(playerloc) > summon.getAllowedDistance()) {
+                inflictDmg.put(player, (double)summon.getDamageAmount());
+            }
 		}
+        for (Map.Entry<Player, Double> entry : inflictDmg.entrySet()) {
+            final Player player = entry.getKey();
+            final Double damage = entry.getValue();
+			player.damage(damage);
+        }
 	}
 	
 	public boolean summonPearl(PrisonPearl pp) {
@@ -117,14 +132,14 @@ public class SummonManager implements Listener, SaveLoad {
 		if (player == null || player.isDead())
 			return false;
 		
-		if (summons.containsKey(player.getName()))
+		if (summons.containsKey(player.getUniqueId()))
 			return false;
 		
-		Summon summon = new Summon(player.getName(), player.getLocation().add(0, -.5, 0), plugin.getConfig().getInt("summon_damage_radius"), plugin.getConfig().getInt("summon_damage_amt"), true, true, true);
-		summons.put(summon.getSummonedName(), summon);
+		Summon summon = new Summon(player.getUniqueId(), player.getLocation().add(0, -.5, 0), plugin.getConfig().getInt("summon_damage_radius"), plugin.getConfig().getInt("summon_damage_amt"), canSpeakDefault, canDamageDefault, canBreakDefault);
+		summons.put(summon.getSummonedId(), summon);
 		
 		if (!summonEvent(pp, SummonEvent.Type.SUMMONED, pp.getLocation())) {
-			summons.remove(player.getName());
+			summons.remove(player.getUniqueId());
 			return false;
 		}
 		
@@ -133,12 +148,12 @@ public class SummonManager implements Listener, SaveLoad {
 	}
 	
 	public boolean returnPearl(PrisonPearl pp) {
-		Summon summon = summons.remove(pp.getImprisonedName());
+		Summon summon = summons.remove(pp.getImprisonedId());
 		if (summon == null)
 			return false;
 		
 		if (!summonEvent(pp, SummonEvent.Type.RETURNED, summon.getReturnLocation())) {
-			summons.put(pp.getImprisonedName(), summon);
+			summons.put(pp.getImprisonedId(), summon);
 			return false;
 		}
 		
@@ -147,34 +162,34 @@ public class SummonManager implements Listener, SaveLoad {
 	}
 	
 	public boolean killPearl(PrisonPearl pp) {
-		Summon summon = summons.remove(pp.getImprisonedName());
+		Summon summon = summons.remove(pp.getImprisonedId());
 		if (summon == null)
 			return false;
 		
 		if (!summonEvent(pp, SummonEvent.Type.KILLED, summon.getReturnLocation())) {
-			summons.put(pp.getImprisonedName(), summon);
+			summons.put(pp.getImprisonedId(), summon);
 			return false;
 		}
 		
-		pp.getImprisonedPlayer().setHealth(0);
+		pp.getImprisonedPlayer().setHealth(0.0);
 		dirty = true;
 		return true;
 	}
 	
 	public boolean isSummoned(Player player) {
-		return summons.containsKey(player.getName());
+		return summons.containsKey(player.getUniqueId());
 	}
 	
 	public boolean isSummoned(PrisonPearl pp) {
-		return summons.containsKey(pp.getImprisonedName());
+		return summons.containsKey(pp.getImprisonedId());
 	}
 	
 	public Summon getSummon(Player player) {
-		return summons.get(player.getName());
+		return summons.get(player.getUniqueId());
 	}
 	
-	public Summon getSummon(String name) {
-		return summons.get(name);
+	public Summon getSummon(UUID id) {
+		return summons.get(id);
 	}
 	
 	@EventHandler(priority=EventPriority.HIGHEST)
@@ -183,7 +198,7 @@ public class SummonManager implements Listener, SaveLoad {
 			return;
 
 		Player player = (Player)event.getEntity();
-		Summon summon = summons.remove(player.getName());
+		Summon summon = summons.remove(player.getUniqueId());
 		if (summon == null)
 			return;
 		dirty = true;
@@ -198,19 +213,17 @@ public class SummonManager implements Listener, SaveLoad {
 	@EventHandler(priority=EventPriority.MONITOR)
 	public void onPrisonPearlEvent(PrisonPearlEvent event) {
 		if (event.getType() == PrisonPearlEvent.Type.FREED) {
-			summons.remove(event.getPrisonPearl().getImprisonedName());
+			summons.remove(event.getPrisonPearl().getImprisonedId());
 			dirty = true;
 		}
 	}
 	
-	@SuppressWarnings({"UnusedReturnValue", "SameParameterValue"})
-    private boolean summonEvent(PrisonPearl pp, @SuppressWarnings("SameParameterValue") SummonEvent.Type type) {
+    private boolean summonEvent(PrisonPearl pp, SummonEvent.Type type) {
 		SummonEvent event = new SummonEvent(pp, type);
 		Bukkit.getPluginManager().callEvent(event);
 		return !event.isCancelled();
 	}
 	
-	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean summonEvent(PrisonPearl pp, SummonEvent.Type type, Location loc) {
 		SummonEvent event = new SummonEvent(pp, type, loc);
 		Bukkit.getPluginManager().callEvent(event);

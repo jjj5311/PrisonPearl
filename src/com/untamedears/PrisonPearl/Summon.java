@@ -1,11 +1,13 @@
 package com.untamedears.PrisonPearl;
 
+import java.util.UUID;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 public class Summon {
-	private final String summonedname;
+	private final UUID summonedId;
 	private final Location returnloc;
 	private int alloweddistance;
     private int damageamount;
@@ -13,8 +15,8 @@ public class Summon {
     private boolean canDealDamage;
     private boolean canBreakBlocks;
 
-    public Summon(String summonedname, Location returnloc, int alloweddistance, int damageamount, boolean canSpeak, boolean canDealDamage, boolean canBreakBlocks) {
-		this.summonedname = summonedname;
+    public Summon(UUID summonedId, Location returnloc, int alloweddistance, int damageamount, boolean canSpeak, boolean canDealDamage, boolean canBreakBlocks) {
+		this.summonedId = summonedId;
 		this.returnloc = returnloc;
 		this.alloweddistance = alloweddistance;
         this.damageamount = damageamount;
@@ -23,12 +25,12 @@ public class Summon {
         this.canBreakBlocks = canBreakBlocks;
     }
 	
-	public String getSummonedName() {
-		return summonedname;
+	public UUID getSummonedId() {
+		return summonedId;
 	}
 	
 	public Player getSummonedPlayer() {
-		return Bukkit.getPlayerExact(summonedname);
+		return Bukkit.getPlayer(summonedId);
 	}
 	
 	public Location getReturnLocation() {

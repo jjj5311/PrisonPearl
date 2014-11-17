@@ -34,7 +34,6 @@ class DamageLog {
 		return getDamage(player.getName());
 	}
 	
-	@SuppressWarnings("WeakerAccess")
     public int getDamage(String name) {
 		Integer i = damagers.get(name);
 		if (i == null)

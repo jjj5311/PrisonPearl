@@ -109,7 +109,7 @@ class DamageLogManager implements Runnable, Listener {
 		}
 	}
 	
-	private void recordDamage(Player player, Player damager, int amt) {
+	private void recordDamage(Player player, Player damager, double amt) {
 		DamageLog log = logs.get(player.getName());
 		if (log == null) {
 			log = new DamageLog(player);
@@ -117,7 +117,7 @@ class DamageLogManager implements Runnable, Listener {
 		}
 		
 		long ticks = plugin.getConfig().getInt("damagelog_ticks");
-		log.recordDamage(damager, amt, getNowTick() + ticks);
+		log.recordDamage(damager, (int)amt, getNowTick() + ticks);
 		scheduleExpireTask(ticks);
 	}
 	
