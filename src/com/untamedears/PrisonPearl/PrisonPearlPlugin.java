@@ -596,8 +596,15 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		if (event.getType() == PrisonPearlEvent.Type.NEW) {
 			updateAttachment(player);
 			
+			// Log the capturing PrisonPearl event.
 			Player imprisoner = event.getImprisoner();
-			log.info(imprisoner.getDisplayName() + " has bound " + playerName + " to a PrisonPearl");
+			String imprisonerLoc = serializeLocation(imprisoner.getLocation());
+			String playerLoc = serializeLocation(player.getLocation());
+			String message = String.format("%s [%s] has bound %s [%s] to a PrisonPearl", 
+											imprisoner.getDisplayName(), imprisonerLoc,
+											playerName, playerLoc);
+			log.info(message);
+			
 			imprisoner.sendMessage(ChatColor.GREEN+"You've bound " + playerName + ChatColor.GREEN+" to a prison pearl!");
 			if (player != null) {
 				player.sendMessage(ChatColor.RED+"You've been bound to a prison pearl owned by " + imprisoner.getDisplayName());
@@ -636,8 +643,21 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			}
 			UUID[] alts = altsList.getAltsArray(playerId);
 			checkBans(alts);
-
-			log.info(playerName + " was freed");
+			
+			// Log the free'ing PrisonPearl event with coordinates.
+			Player imprisoner = event.getPrisonPearl().getHolderPlayer();
+			String playerLoc = player != null ? serializeLocation(player.getLocation()) : "[???]";
+			String message = String.format("%s [%s] was freed", playerName, playerLoc);
+			
+			if (imprisoner != null) {
+				String imprisonerLoc = serializeLocation(imprisoner.getLocation());
+				message = String.format("%s [%s] was freed by %s [%s]", 
+												playerName, playerLoc,
+												imprisoner.getDisplayName(), imprisonerLoc);
+			} 
+			
+			log.info(message);
+			
 			if (player != null) {
 				player.sendMessage("You've been freed!");
 				broadcastman.broadcast(player, playerName + " was freed!");
@@ -932,7 +952,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		}
 		if (pearledCount >= maxImprisonedAlts) {
 			if (!pearls.isImprisoned(id)) {
-				banAndKick(id, pearledCount, names);
+				banAndKick(id, pearledCount);
 				return 2;
 			}
 			int count = 0;
@@ -941,7 +961,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 					count++;
 				}
 				if (count >= maxImprisonedAlts) {
-					banAndKick(id, pearledCount, names);
+					banAndKick(id, pearledCount);
 					return 2;
 				}
 			}
@@ -957,17 +977,17 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		return 0;
 	}
 	
-	private void banAndKick(UUID id, int pearledCount, String names) {
+	private void banAndKick(UUID id, int pearledCount) {
 		Player p = this.getServer().getPlayer(id);
 		if (p != null) {
 			p.kickPlayer(kickMessage);
 		}
 		if (banManager_.isBanned(id)) {
-			log.info(id+" still banned for having "+pearledCount+" imprisoned alts: "+names);
+			log.info(id+" still banned for having "+pearledCount+" imprisoned alts.");
 			return;
 		}
 		banManager_.ban(id);
-		log.info("banning "+id+" for having "+pearledCount+" imprisoned alts: "+names);
+		log.info("banning "+id+" for having "+pearledCount+" imprisoned alts.");
 	}
 	
 	private void checkBans(UUID[] ids) {
@@ -992,7 +1012,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
                     p.kickPlayer(kickMessage);
                 }
                 banManager_.ban(id);
-                log.info("banning " + id + ", for having " + pearledCount + " imprisoned alts: " + iNames);
+                log.info("banning " + id + ", for having " + pearledCount + " imprisoned alts.");
             } else if (banManager_.isBanned(id)) {
                 banManager_.pardon(id);
                 log.info("unbanning " + id + ", no longer has too many imprisoned alts.");
@@ -1073,5 +1093,24 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
     
     public BanManager getBanManager() {
         return banManager_;
+    }
+
+    /**
+     * Log a message to plugin {@link Logger}.
+     * @param message - the message to log.
+     */
+    public static void log(String message) {
+    	if (log != null) {
+    		log.log(Level.INFO, message);
+    	}
+    }
+    
+    /**
+     * @param location - the location to serialize into user-friendly text.
+     * @return the serialized user-friendly string representing location.
+     */
+    private static String serializeLocation(Location location) {
+    	return String.format("%s, (%d, %d, %d)", location.getWorld().getName(),
+    							location.getBlockX(), location.getBlockY(), location.getBlockZ());
     }
 }
