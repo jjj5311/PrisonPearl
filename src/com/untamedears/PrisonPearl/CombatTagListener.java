@@ -25,10 +25,6 @@ class CombatTagListener implements Listener {
         if (event.getReason() != NpcDespawnReason.DESPAWN_TIMEOUT) {
             return;
         }
-<<<<<<< HEAD
-
-=======
->>>>>>> 345ba7ee37d555bf2ae80fe305d48b9f6d45dd32
         UUID plruuid = event.getPlayerUUID();
         NPC npc = event.getNpc();
         Location loc = npc.getBukkitEntity().getLocation();
