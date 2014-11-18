@@ -618,6 +618,17 @@ class PrisonPearlManager implements Listener {
 		
 		pp.markMove();
 		updatePearl(pp, event.getPlayer());
+		
+		// If pearl was in unloaded chunk
+		if (unloadedPearls.isEmpty())
+			return;
+		UUID want = pp.getImprisonedId();
+		for (UUID uuid: unloadedPearls.keySet()){
+			if (want.equals(uuid)){
+				unloadedPearls.get(uuid).cancel();
+				unloadedPearls.remove(uuid);
+			}
+		}
 	}
 	
 	
