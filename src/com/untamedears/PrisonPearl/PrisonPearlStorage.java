@@ -283,6 +283,7 @@ public class PrisonPearlStorage implements SaveLoad {
 		return pearls_byimprisoned.get(player.getUniqueId());
 	}
 	
+<<<<<<< HEAD
 	/**
 	 * @param itemStack - the item stack to check for being a PrisonPearl.
 	 * @return true, if itemStack is a PrisonPearl, false otherwise.
@@ -291,6 +292,8 @@ public class PrisonPearlStorage implements SaveLoad {
 		return getByItemStack(itemStack) != null;
 	}
 	
+=======
+>>>>>>> 345ba7ee37d555bf2ae80fe305d48b9f6d45dd32
 	public Integer getPearlCount(){
 		return pearls_byimprisoned.size();
 	}

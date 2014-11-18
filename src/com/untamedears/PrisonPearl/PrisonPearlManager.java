@@ -14,7 +14,10 @@ import net.minecraft.util.com.mojang.authlib.GameProfile;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+<<<<<<< HEAD
 import org.bukkit.Chunk;
+=======
+>>>>>>> 345ba7ee37d555bf2ae80fe305d48b9f6d45dd32
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -42,7 +45,10 @@ import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+<<<<<<< HEAD
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
+=======
+>>>>>>> 345ba7ee37d555bf2ae80fe305d48b9f6d45dd32
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
@@ -50,7 +56,10 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.event.world.ChunkUnloadEvent;
+<<<<<<< HEAD
 import org.bukkit.event.world.ChunkLoadEvent;
+=======
+>>>>>>> 345ba7ee37d555bf2ae80fe305d48b9f6d45dd32
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -58,8 +67,11 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitTask;
 
+<<<<<<< HEAD
 import com.untamedears.PrisonPearl.PrisonPearlEvent.Type;
 
+=======
+>>>>>>> 345ba7ee37d555bf2ae80fe305d48b9f6d45dd32
 class PrisonPearlManager implements Listener {
 	private final PrisonPearlPlugin plugin;
 	private final PrisonPearlStorage pearls;
@@ -340,22 +352,39 @@ class PrisonPearlManager implements Listener {
 	private Map<UUID, BukkitTask> unloadedPearls = new HashMap<UUID, BukkitTask>();
 	// Free the pearl if its on a chunk that unloads
 	@EventHandler(priority = EventPriority.MONITOR)
+<<<<<<< HEAD
 	public void onChunkUnload(ChunkUnloadEvent event) {		
+=======
+	public void onChunkUnload(ChunkUnloadEvent event) {
+>>>>>>> 345ba7ee37d555bf2ae80fe305d48b9f6d45dd32
 		for (Entity e : event.getChunk().getEntities()) {
 			if (!(e instanceof Item))
 				continue;
 
+<<<<<<< HEAD
 			final PrisonPearl pp = pearls.getByItemStack(((Item) e).getItemStack());
 			
 			if (pp == null)
 				continue;
 			
+=======
+			final PrisonPearl pp = pearls.getByItemStack(
+				((Item) e).getItemStack());
+			if (pp == null) {
+				continue;
+			}
+
+>>>>>>> 345ba7ee37d555bf2ae80fe305d48b9f6d45dd32
 			final Player player = Bukkit.getPlayer(pp.getImprisonedId());
 			final Entity entity = e;
 			// doing this in onChunkUnload causes weird things to happen
 
 			event.setCancelled(true);
+<<<<<<< HEAD
 			final UUID uuid = pp.getImprisonedId();
+=======
+			UUID uuid = pp.getImprisonedId();
+>>>>>>> 345ba7ee37d555bf2ae80fe305d48b9f6d45dd32
 			if (unloadedPearls.containsKey(uuid))
 				return;
 			BukkitTask count = Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
@@ -364,7 +393,10 @@ class PrisonPearlManager implements Listener {
 							pp.getImprisonedId() + ") is being freed. Reason: Chunk with PrisonPearl unloaded."))
 					{
 						entity.remove();
+<<<<<<< HEAD
 						unloadedPearls.remove(uuid);
+=======
+>>>>>>> 345ba7ee37d555bf2ae80fe305d48b9f6d45dd32
 					}
 					
 				}
@@ -372,6 +404,7 @@ class PrisonPearlManager implements Listener {
 			unloadedPearls.put(uuid, count);
 		}
 	}
+<<<<<<< HEAD
 	
 	// Prevent dropped Prison Pearl's from being despawned.
 	// TODO: PrisonPearl items specifically aren't being picked up from chunk.getEntities()
@@ -398,6 +431,9 @@ class PrisonPearlManager implements Listener {
 		}
 	}*/
 	
+=======
+
+>>>>>>> 345ba7ee37d555bf2ae80fe305d48b9f6d45dd32
 	// Free the pearl if it combusts in lava/fire
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onEntityCombustEvent(EntityCombustEvent event) {
@@ -414,6 +450,10 @@ class PrisonPearlManager implements Listener {
 		freePearl(pp, reason);
 	}
 	
+<<<<<<< HEAD
+=======
+	
+>>>>>>> 345ba7ee37d555bf2ae80fe305d48b9f6d45dd32
 	// Handle inventory dragging properly.
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onInventoryDrag(InventoryDragEvent event) {
@@ -442,6 +482,7 @@ class PrisonPearlManager implements Listener {
 		}
 	}
 
+<<<<<<< HEAD
 	
 	// Prevent imprisoned players from placing PrisonPearls in their inventory.
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
@@ -456,6 +497,8 @@ class PrisonPearlManager implements Listener {
 	}
 	
 	
+=======
+>>>>>>> 345ba7ee37d555bf2ae80fe305d48b9f6d45dd32
 	// Track the location of a pearl
 	// Forbid pearls from being put in storage minecarts
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -597,6 +640,10 @@ class PrisonPearlManager implements Listener {
 		}
 	}
 	
+<<<<<<< HEAD
+=======
+
+>>>>>>> 345ba7ee37d555bf2ae80fe305d48b9f6d45dd32
 	// Track the location of a pearl if it spawns as an item for any reason
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onItemSpawn(ItemSpawnEvent event) {
@@ -607,14 +654,21 @@ class PrisonPearlManager implements Listener {
 		pp.markMove();
 		updatePearl(pp, item);
 	}
+<<<<<<< HEAD
 	
 
 	// Track the location of a pearl if a player picks it up
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+=======
+
+	// Track the location of a pearl if a player picks it up
+	@EventHandler(priority = EventPriority.MONITOR)
+>>>>>>> 345ba7ee37d555bf2ae80fe305d48b9f6d45dd32
 	public void onPlayerPickupItem(PlayerPickupItemEvent event) {
 		PrisonPearl pp = pearls.getByItemStack(event.getItem().getItemStack());
 		if (pp == null)
 			return;
+<<<<<<< HEAD
 		
 		pp.markMove();
 		updatePearl(pp, event.getPlayer());
@@ -631,6 +685,22 @@ class PrisonPearlManager implements Listener {
 	}
 	
 	
+=======
+		pp.markMove();
+		updatePearl(pp, event.getPlayer());
+		// For when a pearl is dropped in an unloaded chunk
+		if (unloadedPearls.isEmpty())
+			return;
+		UUID want = pp.getImprisonedId();
+		for (UUID uuid: unloadedPearls.keySet()){
+			if (want.equals(uuid)){
+				unloadedPearls.get(uuid).cancel();
+				unloadedPearls.remove(uuid);
+			}
+		}
+	}
+	
+>>>>>>> 345ba7ee37d555bf2ae80fe305d48b9f6d45dd32
 	// Deny pearls traveling to other worlds.
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void worldChangeEvent(PlayerTeleportEvent event){

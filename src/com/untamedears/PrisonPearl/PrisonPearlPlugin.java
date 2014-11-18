@@ -596,6 +596,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		if (event.getType() == PrisonPearlEvent.Type.NEW) {
 			updateAttachment(player);
 			
+<<<<<<< HEAD
 			// Log the capturing PrisonPearl event.
 			Player imprisoner = event.getImprisoner();
 			String imprisonerLoc = serializeLocation(imprisoner.getLocation());
@@ -605,6 +606,10 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 											playerName, playerLoc);
 			log.info(message);
 			
+=======
+			Player imprisoner = event.getImprisoner();
+			log.info(imprisoner.getDisplayName() + " has bound " + playerName + " to a PrisonPearl");
+>>>>>>> 345ba7ee37d555bf2ae80fe305d48b9f6d45dd32
 			imprisoner.sendMessage(ChatColor.GREEN+"You've bound " + playerName + ChatColor.GREEN+" to a prison pearl!");
 			if (player != null) {
 				player.sendMessage(ChatColor.RED+"You've been bound to a prison pearl owned by " + imprisoner.getDisplayName());
@@ -643,6 +648,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			}
 			UUID[] alts = altsList.getAltsArray(playerId);
 			checkBans(alts);
+<<<<<<< HEAD
 			
 			// Log the free'ing PrisonPearl event with coordinates.
 			Player imprisoner = event.getPrisonPearl().getHolderPlayer();
@@ -658,6 +664,10 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			
 			log.info(message);
 			
+=======
+
+			log.info(playerName + " was freed");
+>>>>>>> 345ba7ee37d555bf2ae80fe305d48b9f6d45dd32
 			if (player != null) {
 				player.sendMessage("You've been freed!");
 				broadcastman.broadcast(player, playerName + " was freed!");
@@ -952,7 +962,11 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		}
 		if (pearledCount >= maxImprisonedAlts) {
 			if (!pearls.isImprisoned(id)) {
+<<<<<<< HEAD
 				banAndKick(id, pearledCount);
+=======
+				banAndKick(id, pearledCount, names);
+>>>>>>> 345ba7ee37d555bf2ae80fe305d48b9f6d45dd32
 				return 2;
 			}
 			int count = 0;
@@ -961,7 +975,11 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 					count++;
 				}
 				if (count >= maxImprisonedAlts) {
+<<<<<<< HEAD
 					banAndKick(id, pearledCount);
+=======
+					banAndKick(id, pearledCount, names);
+>>>>>>> 345ba7ee37d555bf2ae80fe305d48b9f6d45dd32
 					return 2;
 				}
 			}
@@ -977,17 +995,29 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		return 0;
 	}
 	
+<<<<<<< HEAD
 	private void banAndKick(UUID id, int pearledCount) {
+=======
+	private void banAndKick(UUID id, int pearledCount, String names) {
+>>>>>>> 345ba7ee37d555bf2ae80fe305d48b9f6d45dd32
 		Player p = this.getServer().getPlayer(id);
 		if (p != null) {
 			p.kickPlayer(kickMessage);
 		}
 		if (banManager_.isBanned(id)) {
+<<<<<<< HEAD
 			log.info(id+" still banned for having "+pearledCount+" imprisoned alts.");
 			return;
 		}
 		banManager_.ban(id);
 		log.info("banning "+id+" for having "+pearledCount+" imprisoned alts.");
+=======
+			log.info(id+" still banned for having "+pearledCount+" imprisoned alts: "+names);
+			return;
+		}
+		banManager_.ban(id);
+		log.info("banning "+id+" for having "+pearledCount+" imprisoned alts: "+names);
+>>>>>>> 345ba7ee37d555bf2ae80fe305d48b9f6d45dd32
 	}
 	
 	private void checkBans(UUID[] ids) {
@@ -1012,7 +1042,11 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
                     p.kickPlayer(kickMessage);
                 }
                 banManager_.ban(id);
+<<<<<<< HEAD
                 log.info("banning " + id + ", for having " + pearledCount + " imprisoned alts.");
+=======
+                log.info("banning " + id + ", for having " + pearledCount + " imprisoned alts: " + iNames);
+>>>>>>> 345ba7ee37d555bf2ae80fe305d48b9f6d45dd32
             } else if (banManager_.isBanned(id)) {
                 banManager_.pardon(id);
                 log.info("unbanning " + id + ", no longer has too many imprisoned alts.");
@@ -1094,6 +1128,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
     public BanManager getBanManager() {
         return banManager_;
     }
+<<<<<<< HEAD
 
     /**
      * Log a message to plugin {@link Logger}.
@@ -1113,4 +1148,6 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
     	return String.format("%s, (%d, %d, %d)", location.getWorld().getName(),
     							location.getBlockX(), location.getBlockY(), location.getBlockZ());
     }
+=======
+>>>>>>> 345ba7ee37d555bf2ae80fe305d48b9f6d45dd32
 }
