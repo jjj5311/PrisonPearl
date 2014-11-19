@@ -352,6 +352,9 @@ class PrisonPearlManager implements Listener {
 			
 			final Player player = Bukkit.getPlayer(pp.getImprisonedId());
 			final Entity entity = e;
+			final World world = entity.getWorld();
+			final int chunkX = event.getChunk().getX();
+			final int chunkZ = event.getChunk().getZ();
 			// doing this in onChunkUnload causes weird things to happen
 
 			event.setCancelled(true);
@@ -360,13 +363,15 @@ class PrisonPearlManager implements Listener {
 				return;
 			BukkitTask count = Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
 				public void run(){
-					if (freePearl(pp, pp.getImprisonedName() + "("+
-							pp.getImprisonedId() + ") is being freed. Reason: Chunk with PrisonPearl unloaded."))
+					// Check that chunk is still unloaded before freeing
+					if (!world.isChunkLoaded(chunkX, chunkZ)
+						&& freePearl(pp, pp.getImprisonedName() + "("+
+								pp.getImprisonedId() + ") is being freed. Reason: Chunk with PrisonPearl unloaded."))
 					{
 						entity.remove();
-						unloadedPearls.remove(uuid);
 					}
-					
+
+					unloadedPearls.remove(uuid);
 				}
 			}, plugin.getPPConfig().getChunkUnloadDelay());
 			unloadedPearls.put(uuid, count);
@@ -454,7 +459,6 @@ class PrisonPearlManager implements Listener {
 			event.setCancelled(true);	// Prevent imprisoned player from grabbing PrisonPearls.
 		}
 	}
-	
 	
 	// Track the location of a pearl
 	// Forbid pearls from being put in storage minecarts
