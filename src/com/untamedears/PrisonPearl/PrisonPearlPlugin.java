@@ -940,7 +940,11 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		Integer pearledCount = pearls.getImprisonedCount(alts);
 		UUID[] imprisonedNames = pearls.getImprisonedIds(alts);
 		String names = "";
-		String name = NameAPI.getCurrentName(id);
+		String name = "";
+		if (isNameLayer)
+			name = NameAPI.getCurrentName(id);
+		else 
+			name = Bukkit.getOfflinePlayer(id).getName();
 		for (int i = 0; i < imprisonedNames.length; i++) {
 			names = names + imprisonedNames[i];
 			if (i < imprisonedNames.length-1) {
@@ -999,7 +1003,12 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
             imprisonedNames = pearls.getImprisonedIds(alts);
             String iNames = "";
             for (int j = 0; j < imprisonedNames.length; j++) {
-                iNames = iNames + NameAPI.getCurrentName(imprisonedNames[j]);
+            	String n = "";
+            	if (isNameLayer)
+            		n = NameAPI.getCurrentName(imprisonedNames[j]);
+            	else
+            		n = Bukkit.getOfflinePlayer(imprisonedNames[j]).getName();
+                iNames = iNames + n;
                 if (j < imprisonedNames.length - 1) {
                     iNames = iNames + ", ";
                 }
