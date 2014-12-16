@@ -13,25 +13,21 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.minecraft.server.v1_7_R4.Item;
-import net.minecraft.server.v1_7_R4.RegistryMaterials;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -944,6 +940,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		Integer pearledCount = pearls.getImprisonedCount(alts);
 		UUID[] imprisonedNames = pearls.getImprisonedIds(alts);
 		String names = "";
+		String name = NameAPI.getCurrentName(id);
 		for (int i = 0; i < imprisonedNames.length; i++) {
 			names = names + imprisonedNames[i];
 			if (i < imprisonedNames.length-1) {
@@ -952,7 +949,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		}
 		if (pearledCount >= maxImprisonedAlts) {
 			if (!pearls.isImprisoned(id)) {
-				banAndKick(id, pearledCount);
+				banAndKick(id, pearledCount, names);
 				return 2;
 			}
 			int count = 0;
@@ -961,15 +958,15 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 					count++;
 				}
 				if (count >= maxImprisonedAlts) {
-					banAndKick(id, pearledCount);
+					banAndKick(id, pearledCount, names);
 					return 2;
 				}
 			}
 		} else if (banManager_.isBanned(id)) {
 			if (pearledCount <= 0) {
-				log.info("pardoning "+id+" for having no imprisoned alts");
+				log.info("pardoning "+name+" for having no imprisoned alts");
 			} else {
-				log.info("pardoning "+id+" who only has "+pearledCount+" imprisoned alts");
+				log.info("pardoning "+name+" who only has "+pearledCount+" imprisoned alts");
 			}
 			banManager_.pardon(id);
 			return 1;
@@ -977,17 +974,18 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		return 0;
 	}
 	
-	private void banAndKick(UUID id, int pearledCount) {
+	private void banAndKick(UUID id, int pearledCount, String names) {
 		Player p = this.getServer().getPlayer(id);
 		if (p != null) {
 			p.kickPlayer(kickMessage);
 		}
+		String name = NameAPI.getCurrentName(id);
 		if (banManager_.isBanned(id)) {
-			log.info(id+" still banned for having "+pearledCount+" imprisoned alts.");
+			log.info(name+" still banned for having "+pearledCount+" imprisoned alts: "+names);
 			return;
 		}
 		banManager_.ban(id);
-		log.info("banning "+id+" for having "+pearledCount+" imprisoned alts.");
+		log.info("banning "+name+" for having "+pearledCount+" imprisoned alts: "+names);
 	}
 	
 	private void checkBans(UUID[] ids) {
@@ -995,12 +993,13 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		UUID[] imprisonedNames;
 		UUID[] alts;
         for (UUID id : ids) {
-            log.info("checking " + id);
+        	String name = NameAPI.getCurrentName(id);
+            log.info("checking " + name);
             alts = altsList.getAltsArray(id);
             imprisonedNames = pearls.getImprisonedIds(alts);
             String iNames = "";
             for (int j = 0; j < imprisonedNames.length; j++) {
-                iNames = iNames + imprisonedNames[j];
+                iNames = iNames + NameAPI.getCurrentName(imprisonedNames[j]);
                 if (j < imprisonedNames.length - 1) {
                     iNames = iNames + ", ";
                 }
@@ -1012,10 +1011,10 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
                     p.kickPlayer(kickMessage);
                 }
                 banManager_.ban(id);
-                log.info("banning " + id + ", for having " + pearledCount + " imprisoned alts.");
+                log.info("banning " + name + ", for having " + pearledCount + " imprisoned alts: " + iNames);
             } else if (banManager_.isBanned(id)) {
                 banManager_.pardon(id);
-                log.info("unbanning " + id + ", no longer has too many imprisoned alts.");
+                log.info("unbanning " + name + ", no longer has too many imprisoned alts.");
             }
         }
 	}
