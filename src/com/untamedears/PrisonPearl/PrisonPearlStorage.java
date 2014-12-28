@@ -32,7 +32,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import com.valadian.nametracker.NameAPI;
+import vg.civcraft.mc.namelayer.NameAPI;
 
 //import com.untamedears.EnderExpansion.Enderplugin;
 

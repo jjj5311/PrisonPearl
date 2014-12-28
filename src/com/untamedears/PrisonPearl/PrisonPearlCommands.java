@@ -16,7 +16,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import com.valadian.nametracker.NameAPI;
+import vg.civcraft.mc.namelayer.NameAPI;
 
 class PrisonPearlCommands implements CommandExecutor {
     private final PrisonPearlPlugin plugin;

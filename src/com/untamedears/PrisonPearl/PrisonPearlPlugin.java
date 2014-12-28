@@ -46,7 +46,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.valadian.nametracker.NameAPI;
+import vg.civcraft.mc.namelayer.NameAPI;
 
 public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	private static PrisonPearlPlugin globalInstance = null;

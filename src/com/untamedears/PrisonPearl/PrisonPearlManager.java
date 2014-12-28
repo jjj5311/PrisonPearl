@@ -14,7 +14,6 @@ import net.minecraft.util.com.mojang.authlib.GameProfile;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -42,7 +41,6 @@ import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
-import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
@@ -50,15 +48,12 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.event.world.ChunkUnloadEvent;
-import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitTask;
-
-import com.untamedears.PrisonPearl.PrisonPearlEvent.Type;
 
 class PrisonPearlManager implements Listener {
 	private final PrisonPearlPlugin plugin;
@@ -660,6 +655,7 @@ class PrisonPearlManager implements Listener {
 			return;
 		
 		Inventory inv = event.getPlayer().getInventory();
+		boolean message = false;
 		for (Entry<Integer, ? extends ItemStack> entry :
 			inv.all(Material.ENDER_PEARL).entrySet()) {
 			ItemStack item = entry.getValue();
@@ -671,8 +667,10 @@ class PrisonPearlManager implements Listener {
 			int slot = entry.getKey();
 			inv.clear(slot);
 			previous.getWorld().dropItemNaturally(previous, item);
+			message = true;
 		}
-		event.getPlayer().sendMessage(ChatColor.RED + "This world is not allowed " +
+		if (message)
+			event.getPlayer().sendMessage(ChatColor.RED + "This world is not allowed " +
 				"to have PrisonPearl's in it. Your prisoner was dropped where " +
 				"you were in the previous world.");
 	}
