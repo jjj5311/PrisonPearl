@@ -22,6 +22,7 @@ save_ticks: 2400
 upkeep:
   resource: 263
   quantity: 4
+  distance: 0
 ignore_feed:
   days: 0
   hours: 0

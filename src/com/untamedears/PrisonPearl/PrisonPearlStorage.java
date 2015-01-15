@@ -373,6 +373,7 @@ public class PrisonPearlStorage implements SaveLoad {
 		long inactive_seconds = this.getConfig().getLong("ignore_feed.seconds", 0);
 		long inactive_hours = this.getConfig().getLong("ignore_feed.hours", 0);
 		long inactive_days = this.getConfig().getLong("ignore_feed.days", 0);
+		int maxFeedDistance = plugin.getPPConfig().getMaxFeedDistance();
 
 		int pearlsfed = 0;
 		int coalfed = 0;
@@ -383,6 +384,7 @@ public class PrisonPearlStorage implements SaveLoad {
 			//final String prisoner = Bukkit.getPlayer(prisonerId).getName();
 			Inventory inv[] = new Inventory[2];
 			int retval = HolderStateToInventory(pp, inv);
+			Location loc = pp.getLocation();
 			if (retval == HolderStateToInventory_BADCONTAINER) {
 				String reason = prisonerId + " is being freed. Reason: Freed during coal feed, container was corrupt.";
 				pearlman.freePearl(pp, reason);
@@ -390,6 +392,12 @@ public class PrisonPearlStorage implements SaveLoad {
 				freedpearls++;
 				continue;
 			} else if (retval != HolderStateToInventory_SUCCESS) {
+				continue;
+			}
+			else if (maxFeedDistance != 0 && Math.sqrt(Math.pow(loc.getX(), 2) + Math.pow(loc.getZ(), 2)) > maxFeedDistance){
+				String reason = prisonerId + " is being freed. Reason: Freed during coal feed, was outside max distance.";
+				pearlman.freePearl(pp, reason);
+				log+="\n freed:"+prisonerId+",reason:"+"maxDistance";
 				continue;
 			}
 			if (!upgradePearl(inv[0], pp) && inv[1] != null) {
