@@ -1121,4 +1121,10 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
     	return String.format("%s, (%d, %d, %d)", location.getWorld().getName(),
     							location.getBlockX(), location.getBlockY(), location.getBlockZ());
     }
+    
+    public boolean isMaxFeed(Location loc){
+    	int maxFeedDistance = getPPConfig().getMaxFeedDistance();
+    	return  maxFeedDistance != 0 && Math.sqrt(Math.pow(loc.getX(), 2) + Math.pow(loc.getZ(), 2)) 
+    			> maxFeedDistance;
+    }
 }

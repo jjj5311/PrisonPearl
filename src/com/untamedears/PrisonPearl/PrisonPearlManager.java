@@ -28,6 +28,7 @@ import org.bukkit.configuration.Configuration;
 import org.bukkit.craftbukkit.v1_7_R4.CraftServer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
@@ -435,6 +436,15 @@ class PrisonPearlManager implements Listener {
 				pearl.markMove();
 				updatePearlHolder(pearl, holder, event);
 				
+				if (plugin.isMaxFeed(pearl.getLocation())){
+					HumanEntity human = event.getWhoClicked();
+					if (human instanceof Player){
+						Player p = (Player) human;
+						p.sendMessage(ChatColor.GREEN + "The Pearl of " + pearl.getImprisonedName() + " was placed outside of the feed "
+								+ "range, if you leave him here the pearl will be freed restart.");
+					}
+				}
+				
 				if(event.isCancelled()) {
 					return;
 				}
@@ -671,7 +681,7 @@ class PrisonPearlManager implements Listener {
 		}
 		if (message)
 			event.getPlayer().sendMessage(ChatColor.RED + "This world is not allowed " +
-				"to have PrisonPearl's in it. Your prisoner was dropped where " +
+				"to have Prison Pearls in it. Your prisoner was dropped where " +
 				"you were in the previous world.");
 	}
 

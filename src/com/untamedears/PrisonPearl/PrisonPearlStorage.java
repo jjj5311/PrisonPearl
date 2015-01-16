@@ -373,7 +373,6 @@ public class PrisonPearlStorage implements SaveLoad {
 		long inactive_seconds = this.getConfig().getLong("ignore_feed.seconds", 0);
 		long inactive_hours = this.getConfig().getLong("ignore_feed.hours", 0);
 		long inactive_days = this.getConfig().getLong("ignore_feed.days", 0);
-		int maxFeedDistance = plugin.getPPConfig().getMaxFeedDistance();
 
 		int pearlsfed = 0;
 		int coalfed = 0;
@@ -394,7 +393,7 @@ public class PrisonPearlStorage implements SaveLoad {
 			} else if (retval != HolderStateToInventory_SUCCESS) {
 				continue;
 			}
-			else if (maxFeedDistance != 0 && Math.sqrt(Math.pow(loc.getX(), 2) + Math.pow(loc.getZ(), 2)) > maxFeedDistance){
+			else if (plugin.isMaxFeed(loc)){
 				String reason = prisonerId + " is being freed. Reason: Freed during coal feed, was outside max distance.";
 				pearlman.freePearl(pp, reason);
 				log+="\n freed:"+prisonerId+",reason:"+"maxDistance";
