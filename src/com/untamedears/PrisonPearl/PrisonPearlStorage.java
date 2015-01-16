@@ -397,6 +397,7 @@ public class PrisonPearlStorage implements SaveLoad {
 				String reason = prisonerId + " is being freed. Reason: Freed during coal feed, was outside max distance.";
 				pearlman.freePearl(pp, reason);
 				log+="\n freed:"+prisonerId+",reason:"+"maxDistance";
+				freedpearls++;
 				continue;
 			}
 			if (!upgradePearl(inv[0], pp) && inv[1] != null) {

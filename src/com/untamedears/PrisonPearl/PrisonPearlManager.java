@@ -422,12 +422,11 @@ class PrisonPearlManager implements Listener {
 			return;
 		
 		Map<Integer, ItemStack> items = event.getNewItems();
-		
+
 		for(Integer slot : items.keySet()) {
 			ItemStack item = items.get(slot);
 			
 			PrisonPearl pearl = pearls.getByItemStack(item);
-			
 			if(pearl != null) {
 				boolean clickedTop = event.getView().convertSlot(slot) == slot;
 				
@@ -435,15 +434,6 @@ class PrisonPearlManager implements Listener {
 				
 				pearl.markMove();
 				updatePearlHolder(pearl, holder, event);
-				
-				if (plugin.isMaxFeed(pearl.getLocation())){
-					HumanEntity human = event.getWhoClicked();
-					if (human instanceof Player){
-						Player p = (Player) human;
-						p.sendMessage(ChatColor.GREEN + "The Pearl of " + pearl.getImprisonedName() + " was placed outside of the feed "
-								+ "range, if you leave him here the pearl will be freed restart.");
-					}
-				}
 				
 				if(event.isCancelled()) {
 					return;
@@ -507,6 +497,14 @@ class PrisonPearlManager implements Listener {
 				pearl.markMove();
 				updatePearlHolder(pearl, holder, event);
 				}
+				if (plugin.isMaxFeed(pearl.getLocation())){
+					HumanEntity human = event.getWhoClicked();
+					if (human instanceof Player){
+						Player p = (Player) human;
+						p.sendMessage(ChatColor.GREEN + "The Pearl of " + pearl.getImprisonedName() + " was placed outside of the feed "
+								+ "range, if you leave him here the pearl will be freed restart.");
+					}
+				}
 			}
 		}
 		else if(event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {			
@@ -524,6 +522,14 @@ class PrisonPearlManager implements Listener {
 				else if(holder.getInventory().firstEmpty() >= 0) {
 					pearl.markMove();
 					updatePearlHolder(pearl, holder, event);
+				}
+				if (plugin.isMaxFeed(pearl.getLocation())){
+					HumanEntity human = event.getWhoClicked();
+					if (human instanceof Player){
+						Player p = (Player) human;
+						p.sendMessage(ChatColor.GREEN + "The Pearl of " + pearl.getImprisonedName() + " was placed outside of the feed "
+								+ "range, if you leave him here the pearl will be freed restart.");
+					}
 				}
 			}
 		}
