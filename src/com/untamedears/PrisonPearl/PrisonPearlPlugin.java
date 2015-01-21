@@ -717,6 +717,8 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 				// Fall through to case KILLED
 			} else {
 				player.sendMessage(ChatColor.RED+"You've been returned to your prison");
+				if (player.isInsideVehicle())
+					player.eject();
 				player.teleport(event.getLocation());
 				break;
 			}
