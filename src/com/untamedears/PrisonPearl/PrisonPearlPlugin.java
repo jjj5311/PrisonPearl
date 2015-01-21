@@ -28,6 +28,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -585,25 +586,28 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			return;
 		
 		PrisonPearl pp = event.getPrisonPearl();
-		Player player = pp.getImprisonedPlayer();
 		UUID playerId = pp.getImprisonedId();
 		String playerName = Bukkit.getOfflinePlayer(playerId).getName();
-		
+		Player player = Bukkit.getPlayer(playerId);
 		if (event.getType() == PrisonPearlEvent.Type.NEW) {
-			updateAttachment(player);
+			OfflinePlayer p = Bukkit.getOfflinePlayer(playerId);
+			if (p.isOnline())
+				updateAttachment(p.getPlayer());
 			
 			// Log the capturing PrisonPearl event.
 			Player imprisoner = event.getImprisoner();
 			String imprisonerLoc = serializeLocation(imprisoner.getLocation());
-			String playerLoc = serializeLocation(player.getLocation());
+			String playerLoc = null;
+			if (p.isOnline())
+				serializeLocation(p.getPlayer().getLocation());
 			String message = String.format("%s [%s] has bound %s [%s] to a PrisonPearl", 
 											imprisoner.getDisplayName(), imprisonerLoc,
 											playerName, playerLoc);
 			log.info(message);
 			
 			imprisoner.sendMessage(ChatColor.GREEN+"You've bound " + playerName + ChatColor.GREEN+" to a prison pearl!");
-			if (player != null) {
-				player.sendMessage(ChatColor.RED+"You've been bound to a prison pearl owned by " + imprisoner.getDisplayName());
+			if (p.isOnline()) {
+				p.getPlayer().sendMessage(ChatColor.RED+"You've been bound to a prison pearl owned by " + imprisoner.getDisplayName());
 			}
 
 			UUID[] alts = altsList.getAltsArray(playerId);
