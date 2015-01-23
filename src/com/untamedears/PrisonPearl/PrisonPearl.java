@@ -219,6 +219,10 @@ public class PrisonPearl {
 			Chunk chunk = holder.item.getLocation().getChunk();
 			for (Entity entity : chunk.getEntities()) {
 				if (entity == holder.item)
+					feedback.append(String.format("Found on ground at (%d,%d,%d)",
+							entity.getLocation().getX(),
+							entity.getLocation().getY(),
+							entity.getLocation().getZ()));
 					return HolderVerReason.ON_GROUND;
 			}
 			feedback.append("On ground not in chunk");
@@ -232,6 +236,11 @@ public class PrisonPearl {
 					return HolderVerReason.PLAYER_NOT_ONLINE;
 				}
 				if (pearlOnCursor) {
+					feedback.append(String.format("In hand of %s at (%d,%d,%d)",
+							holder.player.getName(),
+							holder.player.getLocation().getX(),
+							holder.player.getLocation().getY(),
+							holder.player.getLocation().getZ()));
 					return HolderVerReason.IN_HAND;
 				}
 				ItemStack cursoritem = holder.player.getItemOnCursor();
@@ -256,6 +265,11 @@ public class PrisonPearl {
 				for (HumanEntity viewer : inv.getViewers()) {
 					ItemStack cursoritem = viewer.getItemOnCursor();
 					if (cursoritem.getType() == Material.ENDER_PEARL && cursoritem.getDurability() == id)
+						feedback.append(String.format("In hand of %s viewing chest at (%d,%d,%d)",
+								viewer.getName(),
+								holder.blocklocation.getX(),
+								holder.blocklocation.getY(),
+								holder.blocklocation.getZ()));
 						return HolderVerReason.IN_VIEWER_HAND;
 				}
 				feedback.append(String.format(
@@ -267,6 +281,10 @@ public class PrisonPearl {
 			}
 			for (ItemStack item : inv.all(Material.ENDER_PEARL).values()) {
 				if (item.getDurability() == id)
+					feedback.append(String.format("In inventory at (%d,%d,%d)",
+							holder.blocklocation.getBlockX(),
+							holder.blocklocation.getBlockY(),
+							holder.blocklocation.getBlockZ()));
 					return HolderVerReason.IN_CHEST;
 			}
 			return HolderVerReason.DEFAULT;
@@ -278,12 +296,15 @@ public class PrisonPearl {
 
 		StringBuilder verifier_log = new StringBuilder();
 		StringBuilder failure_reason_log = new StringBuilder();
+
         for (final Holder holder : this.holders) {
 			HolderVerReason reason = verifyHolder(holder, verifier_log);
             if (reason.ordinal() > 5) {
+
 				sb.append(String.format("PP (%d, %s) passed verification for reason %s: %s",
 										id, getPlayerName(), reason.toString(), verifier_log.toString()));
 				PrisonPearlPlugin.info(sb.toString());
+				
                 return true;
             } else {
 				failure_reason_log.append(reason.toString()).append(", ");
