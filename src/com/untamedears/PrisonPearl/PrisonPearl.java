@@ -193,81 +193,105 @@ public class PrisonPearl {
 		return "held by " + getHolderName(holder) + " at " + str;
 	}
 
-	public boolean verifyHolder(Holder holder, StringBuilder feedback) {
+	private enum HolderVerReason{
+		DEFAULT,
+		ENTITY_NOT_IN_CHUNK,
+		PLAYER_NOT_ONLINE,
+		BLOCK_STACK_NULL,
+		NOT_BLOCK_INVENTORY,
+		NO_ITEM_PLAYER_OR_LOCATION, //True after here
+		ON_GROUND,
+		IN_HAND,
+		IN_CHEST,
+		IN_VIEWER_HAND,
+		TIME
+
+	}
+
+	public HolderVerReason verifyHolder(Holder holder, StringBuilder feedback) {
 		// Return true if the pearl exists in a valid location
 		if (System.currentTimeMillis() - this.lastMoved < 2000) {
 			// The pearl was recently moved. Due to a race condition, this exists to
 			//  prevent players from spamming /ppl to get free when a pearl is moved.
-			return true;
+			return HolderVerReason.TIME;
 		}
 		if (holder.item != null) {
 			Chunk chunk = holder.item.getLocation().getChunk();
 			for (Entity entity : chunk.getEntities()) {
 				if (entity == holder.item)
-					return true;
+					return HolderVerReason.ON_GROUND;
 			}
 			feedback.append("On ground not in chunk");
-			return false;
+			return HolderVerReason.ENTITY_NOT_IN_CHUNK;
 		} else {
 			Inventory inv;
 			if (holder.player != null) {
 				if (!holder.player.isOnline()) {
 					feedback.append(String.format("Jailor %s not online",
 						holder.player.getName()));
-					return false;
+					return HolderVerReason.PLAYER_NOT_ONLINE;
 				}
 				if (pearlOnCursor) {
-					return true;
+					return HolderVerReason.IN_HAND;
 				}
 				ItemStack cursoritem = holder.player.getItemOnCursor();
 				if (cursoritem.getType() == Material.ENDER_PEARL && cursoritem.getDurability() == id)
-					return true;
+					return HolderVerReason.IN_HAND;
 				inv = holder.player.getInventory();
 				feedback.append(String.format("Not in %s's inventory", holder.player.getName()));
 			} else if (holder.blocklocation != null) {
 				BlockState bs = getHolderBlockState(holder);
 				if (bs == null) {
 					feedback.append("BlockState is null");
-					return false;
+					return HolderVerReason.BLOCK_STACK_NULL;
 				}
 				Location bsLoc = bs.getLocation();
 				if (!(bs instanceof InventoryHolder)) {
 					feedback.append(String.format(
 						"%s not inventory at (%d,%d,%d)", bs.getType().toString(),
 						bsLoc.getBlockX(), bsLoc.getBlockY(), bsLoc.getBlockZ()));
-					return false;
+					return HolderVerReason.NOT_BLOCK_INVENTORY;
 				}
 				inv = ((InventoryHolder)bs).getInventory();
 				for (HumanEntity viewer : inv.getViewers()) {
 					ItemStack cursoritem = viewer.getItemOnCursor();
 					if (cursoritem.getType() == Material.ENDER_PEARL && cursoritem.getDurability() == id)
-						return true;
+						return HolderVerReason.IN_VIEWER_HAND;
 				}
 				feedback.append(String.format(
 					"Not in %s at (%d,%d,%d)", bs.getType().toString(),
 					bsLoc.getBlockX(), bsLoc.getBlockY(), bsLoc.getBlockZ()));
 			} else {
 				feedback.append("Has no player, item, nor location");
-				return false;
+				return HolderVerReason.NO_ITEM_PLAYER_OR_LOCATION;
 			}
 			for (ItemStack item : inv.all(Material.ENDER_PEARL).values()) {
 				if (item.getDurability() == id)
-					return true;
+					return HolderVerReason.IN_CHEST;
 			}
-			return false;
+			return HolderVerReason.DEFAULT;
 		}
 	}
 
     public boolean verifyLocation() {
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("PP (%d, %s) failed verification: ",
-            id, getPlayerName()));
+
+		StringBuilder verifier_log = new StringBuilder();
+		StringBuilder failure_reason_log = new StringBuilder();
         for (final Holder holder : this.holders) {
-            if (verifyHolder(holder, sb)) {
+			HolderVerReason reason = verifyHolder(holder, verifier_log);
+            if (reason.ordinal() > 5) {
+				sb.append(String.format("PP (%d, %s) passed verification for reason %s: %s",
+										id, getPlayerName(), reason.toString(), verifier_log.toString()));
+				PrisonPearlPlugin.info(sb.toString());
                 return true;
-            }
-            sb.append(", ");
+            } else {
+				failure_reason_log.append(reason.toString()).append(", ");
+			}
+            verifier_log.append(", ");
         }
+		sb.append(String.format("PP (%d, %s) failed verification for reason %s: %s",
+				id, getPlayerName(), failure_reason_log.toString(), verifier_log.toString()));
         PrisonPearlPlugin.info(sb.toString());
         return false;
     }
