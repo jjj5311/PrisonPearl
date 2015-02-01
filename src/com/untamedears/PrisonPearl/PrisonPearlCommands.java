@@ -297,7 +297,7 @@ class PrisonPearlCommands implements CommandExecutor {
         }
         if (args.length > 1)
             return null;
-        if (pp.getImprisonedPlayer().isDead()) {
+        if (pp.getImprisonedPlayer() != null && pp.getImprisonedPlayer().isDead()) {
             sender.sendMessage(pp.getImprisonedName() + " is dead. Bring him back to try again.");
             return null;
         } else if (pp.getImprisonedPlayer() == player) {
@@ -319,6 +319,10 @@ class PrisonPearlCommands implements CommandExecutor {
         try {
             dist = Integer.parseInt(args[0]);
         } catch (Exception ex) {
+        	if (ex instanceof ArrayIndexOutOfBoundsException){
+        		sender.sendMessage("You must specify a distance.");
+        		return true;
+        	}
             sender.sendMessage("Invalid distance " + args[0]);
             return false;
         }
