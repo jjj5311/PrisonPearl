@@ -220,9 +220,9 @@ public class PrisonPearl {
 			for (Entity entity : chunk.getEntities()) {
 				if (entity == holder.item)
 					feedback.append(String.format("Found on ground at (%d,%d,%d)",
-							entity.getLocation().getX(),
-							entity.getLocation().getY(),
-							entity.getLocation().getZ()));
+							entity.getLocation().getBlockX(),
+							entity.getLocation().getBlockY(),
+							entity.getLocation().getBlockZ()));
 					return HolderVerReason.ON_GROUND;
 			}
 			feedback.append("On ground not in chunk");
@@ -238,9 +238,9 @@ public class PrisonPearl {
 				if (pearlOnCursor) {
 					feedback.append(String.format("In hand of %s at (%d,%d,%d)",
 							holder.player.getName(),
-							holder.player.getLocation().getX(),
-							holder.player.getLocation().getY(),
-							holder.player.getLocation().getZ()));
+							holder.player.getLocation().getBlockX(),
+							holder.player.getLocation().getBlockY(),
+							holder.player.getLocation().getBlockZ()));
 					return HolderVerReason.IN_HAND;
 				}
 				ItemStack cursoritem = holder.player.getItemOnCursor();
@@ -267,13 +267,13 @@ public class PrisonPearl {
 					if (cursoritem.getType() == Material.ENDER_PEARL && cursoritem.getDurability() == id)
 						feedback.append(String.format("In hand of %s viewing chest at (%d,%d,%d)",
 								viewer.getName(),
-								holder.blocklocation.getX(),
-								holder.blocklocation.getY(),
-								holder.blocklocation.getZ()));
+								holder.blocklocation.getBlockX(),
+								holder.blocklocation.getBlockY(),
+								holder.blocklocation.getBlockZ()));
 						return HolderVerReason.IN_VIEWER_HAND;
 				}
 				feedback.append(String.format(
-					"Not in %s at (%d,%d,%d)", bs.getType().toString(),
+					"In %s at (%d,%d,%d)", bs.getType().toString(),
 					bsLoc.getBlockX(), bsLoc.getBlockY(), bsLoc.getBlockZ()));
 			} else {
 				feedback.append("Has no player, item, nor location");
@@ -281,10 +281,16 @@ public class PrisonPearl {
 			}
 			for (ItemStack item : inv.all(Material.ENDER_PEARL).values()) {
 				if (item.getDurability() == id)
-					feedback.append(String.format("In inventory at (%d,%d,%d)",
+					if (holder.blocklocation != null)
+						feedback.append(String.format("In inventory at (%d,%d,%d)",
 							holder.blocklocation.getBlockX(),
 							holder.blocklocation.getBlockY(),
 							holder.blocklocation.getBlockZ()));
+					else if (holder.player != null)
+						feedback.append(String.format("In inventory at (%d,%d,%d)",
+								holder.player.getLocation().getBlockX(),
+								holder.player.getLocation().getBlockY(),
+								holder.player.getLocation().getBlockZ()));
 					return HolderVerReason.IN_CHEST;
 			}
 			return HolderVerReason.DEFAULT;
