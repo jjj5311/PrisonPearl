@@ -11,6 +11,8 @@ import com.topcat.npclib.entity.NPC;
 import com.trc202.CombatTagEvents.NpcDespawnEvent;
 import com.trc202.CombatTagEvents.NpcDespawnReason;
 
+import vg.civcraft.mc.namelayer.NameAPI;
+
 class CombatTagListener implements Listener {
     final PrisonPearlManager pearlman_;
 
@@ -25,7 +27,7 @@ class CombatTagListener implements Listener {
         if (event.getReason() != NpcDespawnReason.DESPAWN_TIMEOUT) {
             return;
         }
-        UUID plruuid = event.getPlayerUUID();
+        UUID plruuid = NameAPI.getUUID(event.getPlayerName());
         NPC npc = event.getNpc();
         Location loc = npc.getBukkitEntity().getLocation();
 
