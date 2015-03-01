@@ -98,7 +98,7 @@ class BanManager implements Listener {
 	public void onPlayerLogin(AsyncPlayerPreLoginEvent event) {
 		StringBuilder sb = new StringBuilder();
 		final UUID uuidName = event.getUniqueId();
-		sb.append("[PrisonPearl] Alt-Ban-Info: ");
+		sb.append("Alt-Ban-Info: ");
 		sb.append("UUID: " + uuidName.toString());
 		sb.append(" EventLoginResult: " + event.getLoginResult().toString());
 		if (event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) {
