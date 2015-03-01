@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.Set;
@@ -95,22 +96,34 @@ class BanManager implements Listener {
 
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerLogin(AsyncPlayerPreLoginEvent event) {
+		StringBuilder sb = new StringBuilder();
+		final UUID uuidName = event.getUniqueId();
+		sb.append("[PrisonPearl] Alt-Ban-Info: ");
+		sb.append("UUID: " + uuidName.toString());
+		sb.append(" EventLoginResult: " + event.getLoginResult().toString());
 		if (event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) {
+			PrisonPearlPlugin.log(sb.toString());
 			return;
 		}
-		final UUID uuidName = event.getUniqueId();
 		if (!bannedUUIDs_.contains(uuidName)) {
+			sb.append(" Banned UUID: " + bannedUUIDs_.contains(uuidName));
+			PrisonPearlPlugin.log(sb.toString());
 			return;
 		}
 		final OfflinePlayer offline = Bukkit.getOfflinePlayer(uuidName);
 		if (offline != null) {
 			if (offline.isBanned() || offline.isOp()) {
+				sb.append(" Offline Banned: " + offline.isBanned());
+				PrisonPearlPlugin.log(sb.toString());
 				return;
 			}
 		}
+		sb.append(" UUID KICK_BANNED");
+		PrisonPearlPlugin.log(sb.toString());
 		event.disallow(
 			AsyncPlayerPreLoginEvent.Result.KICK_BANNED, banMessage_);
 	}
+	
 
 	private void writeBanJournal() {
 		FileOutputStream fos = null;
@@ -178,6 +191,7 @@ class BanManager implements Listener {
 			final UUID uuidName = entry.getKey();
 			bannedUUIDs_.add(uuidName);
 		}
+		PrisonPearlPlugin.log("PrisonPearl BanManager Ban Count: " + String.valueOf(bannedUUIDs_.size()));
 	}
 
 	// come back here
