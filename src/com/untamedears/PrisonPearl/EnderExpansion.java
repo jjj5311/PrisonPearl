@@ -10,6 +10,8 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
+import com.untamedears.PrisonPearl.events.PrisonPearlEvent;
+
 public class EnderExpansion {
 	private PrisonPearlStorage pearls;
 	

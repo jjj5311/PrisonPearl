@@ -32,21 +32,31 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import com.untamedears.PrisonPearl.database.PrisonPearlMysqlStorage;
+import com.untamedears.PrisonPearl.managers.PrisonPearlManager;
+
 import vg.civcraft.mc.namelayer.NameAPI;
 
 //import com.untamedears.EnderExpansion.Enderplugin;
 
 public class PrisonPearlStorage implements SaveLoad {
-	private PrisonPearlPlugin plugin;
+	private static PrisonPearlPlugin plugin;
 	private final Map<Short, PrisonPearl> pearls_byid;
 	private final Map<UUID, PrisonPearl> pearls_byimprisoned;
+	
+	public static List<UUID> transferedPlayers = new ArrayList<UUID>();
 	private short nextid;
 	
 	private boolean isNameLayer;
+	private boolean isMysql;
 	private boolean dirty;
+	private PrisonPearlMysqlStorage PrisonPearlMysqlStorage;
 	
 	public PrisonPearlStorage(PrisonPearlPlugin plugin) {
 		isNameLayer = Bukkit.getPluginManager().isPluginEnabled("NameLayer");
+		isMysql = plugin.getPPConfig().getMysqlEnabled();
+		PrisonPearlMysqlStorage = plugin.getMysqlStorage();
+				
 		this.plugin = plugin;
 		pearls_byid = new HashMap<Short, PrisonPearl>();
 		pearls_byimprisoned = new HashMap<UUID, PrisonPearl>();
@@ -74,6 +84,11 @@ public class PrisonPearlStorage implements SaveLoad {
 	}
 
 	public void load(File file) throws IOException {
+		if (isMysql){
+			loadMysql();
+			return;
+		}
+		
 		FileInputStream fis = new FileInputStream(file);
 		BufferedReader br = new BufferedReader(new InputStreamReader(fis));
 		
@@ -112,6 +127,11 @@ public class PrisonPearlStorage implements SaveLoad {
 	}
 	
 	public void save(File file) throws IOException {
+		if (isMysql){
+			saveMysql();
+			return;
+		}
+		
 		FileOutputStream fos = new FileOutputStream(file);
 		BufferedWriter br = new BufferedWriter(new OutputStreamWriter(fos));
 	
@@ -252,6 +272,8 @@ public class PrisonPearlStorage implements SaveLoad {
 		pearls_byimprisoned.remove(pp.getImprisonedId());
 		dirty = true;
 		plugin.getLogger().info(reason);
+		if (isMysql)
+			PrisonPearlMysqlStorage.deletePearl(pp);
 	}
 	
 	public void addPearl(PrisonPearl pp) {
@@ -261,6 +283,11 @@ public class PrisonPearlStorage implements SaveLoad {
 		
 		pearls_byid.put(pp.getID(), pp);
 		pearls_byimprisoned.put(pp.getImprisonedId(), pp);
+		if (isMysql){
+			if (PrisonPearlMysqlStorage.getPearl(pp.getImprisonedId()) != null)
+				return;
+			PrisonPearlMysqlStorage.addPearl(pp);
+		}
 		dirty = true;
 	}
 	
@@ -295,11 +322,11 @@ public class PrisonPearlStorage implements SaveLoad {
 		return pearls_byimprisoned.size();
 	}
 	
-	boolean isImprisoned(UUID id) {
+	public boolean isImprisoned(UUID id) {
 		return pearls_byimprisoned.containsKey(id);
 	}
 	
-	boolean isImprisoned(Player player) {
+	public boolean isImprisoned(Player player) {
 		return pearls_byimprisoned.containsKey(player.getUniqueId());
 	}
 	
@@ -384,6 +411,9 @@ public class PrisonPearlStorage implements SaveLoad {
 			Inventory inv[] = new Inventory[2];
 			int retval = HolderStateToInventory(pp, inv);
 			Location loc = pp.getLocation();
+			if (loc instanceof FakeLocation) { // Not on server
+				continue; // Other server will handle feeding
+			}
 			if (retval == HolderStateToInventory_BADCONTAINER) {
 				String reason = prisonerId + " is being freed. Reason: Freed during coal feed, container was corrupt.";
 				pearlman.freePearl(pp, reason);
@@ -460,4 +490,33 @@ public class PrisonPearlStorage implements SaveLoad {
 	private Configuration getConfig() {
 		return plugin.getConfig();
 	}
+	
+	public void loadMysql(){
+    	List<PrisonPearl> pearls = PrisonPearlMysqlStorage.getAllPearls();
+    	for (PrisonPearl pearl: pearls){
+    		pearls_byid.put(pearl.getID(), pearl);
+    		pearls_byimprisoned.put(pearl.getImprisonedId(), pearl);
+    	}
+    }
+    
+    public void saveMysql(){
+    	for (PrisonPearl pp: pearls_byimprisoned.values()){
+    		if (pp.getLocation() instanceof FakeLocation)
+    			continue;
+    		PrisonPearlMysqlStorage.updatePearl(pp);
+    	}
+    }
+    
+    public static void playerIsTransfering(final UUID uuid){
+    	transferedPlayers.add(uuid);
+    	Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
+
+			@Override
+			public void run() {
+				// After a certain amount of time remove the player because they have left.
+				transferedPlayers.remove(uuid);
+			}
+    		
+    	}, 20); // wait 20 ticks
+    }
 }

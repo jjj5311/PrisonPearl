@@ -11,7 +11,7 @@ import java.util.Map.Entry;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-class DamageLog {
+public class DamageLog {
 	private final String player;
 	private final Map<String, Integer> damagers;
 	

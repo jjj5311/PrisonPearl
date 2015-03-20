@@ -1,8 +1,10 @@
-package com.untamedears.PrisonPearl;
+package com.untamedears.PrisonPearl.events;
 
 import org.bukkit.Location;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+
+import com.untamedears.PrisonPearl.PrisonPearl;
 
 public class SummonEvent extends Event {
 	public enum Type { SUMMONED, RETURNED, KILLED, DIED }

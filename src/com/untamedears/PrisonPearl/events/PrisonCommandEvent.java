@@ -1,4 +1,4 @@
-package com.untamedears.PrisonPearl;
+package com.untamedears.PrisonPearl.events;
 
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;

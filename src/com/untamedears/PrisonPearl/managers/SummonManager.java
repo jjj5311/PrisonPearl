@@ -1,4 +1,4 @@
-package com.untamedears.PrisonPearl;
+package com.untamedears.PrisonPearl.managers;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -22,9 +22,20 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 
+import com.untamedears.PrisonPearl.PrisonPearl;
+import com.untamedears.PrisonPearl.PrisonPearlPlugin;
+import com.untamedears.PrisonPearl.PrisonPearlStorage;
+import com.untamedears.PrisonPearl.SaveLoad;
+import com.untamedears.PrisonPearl.Summon;
+import com.untamedears.PrisonPearl.database.PrisonPearlMysqlStorage;
+import com.untamedears.PrisonPearl.events.PrisonPearlEvent;
+import com.untamedears.PrisonPearl.events.SummonEvent;
+
 public class SummonManager implements Listener, SaveLoad {
 	private final PrisonPearlPlugin plugin;
 	private final PrisonPearlStorage pearls;
+	private boolean isMysql;
+	private PrisonPearlMysqlStorage mysqlDb;
 	
 	private final Map<UUID, Summon> summons;
 	private boolean dirty;
@@ -35,11 +46,14 @@ public class SummonManager implements Listener, SaveLoad {
 	public SummonManager(PrisonPearlPlugin plugin, PrisonPearlStorage pearls) {
 		this.plugin = plugin;
 		this.pearls = pearls;
+		isMysql = plugin.getPPConfig().getMysqlEnabled();
         canSpeakDefault = plugin.getConfig().getBoolean("can_speak_default", true);
         canDamageDefault = plugin.getConfig().getBoolean("can_damage_default", true);
         canBreakDefault = plugin.getConfig().getBoolean("can_break_default", true);
 
 		summons = new HashMap<UUID, Summon>();
+		
+		mysqlDb = plugin.getMysqlStorage();
 		
 		Bukkit.getPluginManager().registerEvents(this, plugin);
 		Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
@@ -54,6 +68,10 @@ public class SummonManager implements Listener, SaveLoad {
 	}
 	
 	public void load(File file) throws NumberFormatException, IOException {
+		if (isMysql){
+			loadMysql();
+			return;
+		}
 		FileInputStream fis = new FileInputStream(file);
 		BufferedReader br = new BufferedReader(new InputStreamReader(fis));
 		
@@ -82,6 +100,10 @@ public class SummonManager implements Listener, SaveLoad {
 	}
 	
 	public void save(File file) throws IOException {
+		if (isMysql){
+			saveMysql();
+			return;
+		}
 		FileOutputStream fos = new FileOutputStream(file);
 		BufferedWriter br = new BufferedWriter(new OutputStreamWriter(fos));
 		
@@ -137,6 +159,8 @@ public class SummonManager implements Listener, SaveLoad {
 		
 		Summon summon = new Summon(player.getUniqueId(), player.getLocation().add(0, -.5, 0), plugin.getConfig().getInt("summon_damage_radius"), plugin.getConfig().getInt("summon_damage_amt"), canSpeakDefault, canDamageDefault, canBreakDefault);
 		summons.put(summon.getSummonedId(), summon);
+		if(isMysql)
+			mysqlDb.addSummonedPlayer(summon);
 		
 		if (!summonEvent(pp, SummonEvent.Type.SUMMONED, pp.getLocation())) {
 			summons.remove(player.getUniqueId());
@@ -157,6 +181,9 @@ public class SummonManager implements Listener, SaveLoad {
 			return false;
 		}
 		
+		if (isMysql)
+			mysqlDb.removeSummonedPlayer(summon);
+		
 		dirty = true;
 		return true;
 	}
@@ -173,6 +200,10 @@ public class SummonManager implements Listener, SaveLoad {
 		
 		pp.getImprisonedPlayer().setHealth(0.0);
 		dirty = true;
+		
+		if (isMysql)
+			mysqlDb.removeSummonedPlayer(summon);
+		
 		return true;
 	}
 	
@@ -207,6 +238,9 @@ public class SummonManager implements Listener, SaveLoad {
 		if (pp == null)
 			return;
 		
+		if (isMysql)
+			mysqlDb.removeSummonedPlayer(summon);
+		
 		summonEvent(pp, SummonEvent.Type.DIED);
 	}
 	
@@ -229,4 +263,13 @@ public class SummonManager implements Listener, SaveLoad {
 		Bukkit.getPluginManager().callEvent(event);
 		return !event.isCancelled();
 	}
+    
+    public void loadMysql(){
+    	summons.putAll(mysqlDb.getAllSummonedPlayers());
+    }
+    
+    public void saveMysql(){
+    	for(Summon s: summons.values())
+    		mysqlDb.updateSummonedPlayer(s);
+    }
 }
