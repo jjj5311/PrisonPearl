@@ -15,7 +15,8 @@ public class MercuryListener implements Listener{
 	
 	public static String[] channels = {
 		"PrisonPearlUpdate",
-		"PrisonPearlTransfer"
+		"PrisonPearlTransfer",
+		"PrisonPearlMove"
 	};
 	
 	private final PrisonPearlPlugin plugin;
@@ -35,6 +36,8 @@ public class MercuryListener implements Listener{
 			pearlUpdate(message);
 		else if(channel.equals(channels[1]))
 			pearlTransfer(message);
+		else if(channel.equals(channels[2]))
+			PrisonPearlMove(message);
 	}
 	
 	private void pearlTransfer(String message){
@@ -75,5 +78,12 @@ public class MercuryListener implements Listener{
 			PrisonPearl pp = pearls.getByImprisoned(id);
 			pearls.deletePearl(pp, "This pearl was freed on another server. Removing instance.");
 		}
+	}
+	
+	private void PrisonPearlMove(String message){
+		String[] parts = message.split(" ");
+		UUID uuid = UUID.fromString(parts[0]);
+		FakeLocation loc = new FakeLocation(parts[1], Double.parseDouble(parts[2]), Double.parseDouble(parts[3]),
+				Double.parseDouble(parts[4]));
 	}
 }

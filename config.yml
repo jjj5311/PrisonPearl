@@ -29,3 +29,10 @@ ignore_feed:
   seconds: 0
 deny_pearls_worlds:
   - world_nether
+mysql:
+  enabled: false
+  dbname: PrisonPearl
+  host: localhost
+  username: bukkit
+  password: ''
+  port: 3306

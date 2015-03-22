@@ -193,6 +193,14 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		if (isMercury){
 			getServer().getPluginManager().registerEvents(new MercuryListener(this, pearls), this);
 			MercuryAPI.instance.registerPluginMessageChannel(this, MercuryListener.channels);
+			Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable(){
+
+				@Override
+				public void run() {
+					updateAllPearlLocations();
+				}
+				
+			}, 300, 150);
 		}
 	}
 
@@ -1166,5 +1174,15 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
     	if (mysqlStorage == null && ppconfig.getMysqlEnabled())
     		mysqlStorage = new PrisonPearlMysqlStorage(this);
     	return mysqlStorage;
+    }
+    
+    private void updateAllPearlLocations(){
+    	List<UUID> uuids = pearls.getAllUUIDSforPearls();
+    	for (UUID uuid: uuids){
+    		PrisonPearl pp = pearls.getByImprisoned(uuid);
+    		Location loc = pp.getLocation();
+    		String message = uuid.toString() + " " + loc.getWorld().getName() + " " + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ();
+    		MercuryAPI.instance.sendMessage(message, "PrisonPearlMove");
+    	}
     }
 }
