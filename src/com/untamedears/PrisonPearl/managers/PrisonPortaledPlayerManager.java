@@ -101,7 +101,8 @@ public class PrisonPortaledPlayerManager implements Listener, SaveLoad {
 		
 		if (event.getRespawnLocation().getWorld() != getPrisonWorld()) {
 			portaled_players.remove(player.getUniqueId());
-			mysqlStorage.removePortaledPlayer(player.getUniqueId());
+			if (mysqlStorage != null)
+				mysqlStorage.removePortaledPlayer(player.getUniqueId());
 			dirty = true;
 		}
 	}
@@ -119,7 +120,8 @@ public class PrisonPortaledPlayerManager implements Listener, SaveLoad {
 			portaled_players.add(player.getUniqueId());
 		else{
 			portaled_players.remove(player.getUniqueId());
-			mysqlStorage.removePortaledPlayer(player.getUniqueId());
+			if (mysqlStorage != null)
+				mysqlStorage.removePortaledPlayer(player.getUniqueId());
 		}
 		dirty = true;
 	}
@@ -129,7 +131,8 @@ public class PrisonPortaledPlayerManager implements Listener, SaveLoad {
 		if (event.getType() == PrisonPearlEvent.Type.NEW) {
 			UUID uuid = event.getPrisonPearl().getImprisonedId();
 			portaled_players.remove(uuid);
-			mysqlStorage.removePortaledPlayer(uuid);
+			if (mysqlStorage != null)
+				mysqlStorage.removePortaledPlayer(uuid);
 			dirty = true;
 		}
 	}
