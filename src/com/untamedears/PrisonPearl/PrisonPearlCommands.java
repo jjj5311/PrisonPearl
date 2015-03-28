@@ -16,6 +16,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import com.untamedears.PrisonPearl.managers.BroadcastManager;
+import com.untamedears.PrisonPearl.managers.DamageLogManager;
+import com.untamedears.PrisonPearl.managers.PrisonPearlManager;
+import com.untamedears.PrisonPearl.managers.SummonManager;
+
 import vg.civcraft.mc.namelayer.NameAPI;
 
 class PrisonPearlCommands implements CommandExecutor {
@@ -26,6 +31,7 @@ class PrisonPearlCommands implements CommandExecutor {
     private final SummonManager summonman;
     private final BroadcastManager broadcastman;
     private boolean isNameLayer;
+    private boolean isMercury;
 
     public PrisonPearlCommands(PrisonPearlPlugin plugin, DamageLogManager damageman, PrisonPearlStorage pearls, PrisonPearlManager pearlman, SummonManager summonman, BroadcastManager broadcastman) {
         this.plugin = plugin;
@@ -35,6 +41,7 @@ class PrisonPearlCommands implements CommandExecutor {
         this.summonman = summonman;
         this.broadcastman = broadcastman;
         isNameLayer = Bukkit.getPluginManager().isPluginEnabled("NameLayer");
+        isMercury = plugin.isMercuryLoaded();
     }
 
     @Override

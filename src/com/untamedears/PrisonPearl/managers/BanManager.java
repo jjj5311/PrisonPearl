@@ -1,4 +1,4 @@
-package com.untamedears.PrisonPearl;
+package com.untamedears.PrisonPearl.managers;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -6,7 +6,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.Set;
@@ -21,7 +20,9 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 
-class BanManager implements Listener {
+import com.untamedears.PrisonPearl.PrisonPearlPlugin;
+
+public class BanManager implements Listener {
 	final public static String BAN_MSG = "Banned for having too many imprisoned alts!";
 	final public static String JOURNAL_BASE_NAME = "ban_journalUUID";
 
@@ -102,7 +103,6 @@ class BanManager implements Listener {
 		sb.append("UUID: " + uuidName.toString());
 		sb.append(" EventLoginResult: " + event.getLoginResult().toString());
 		if (event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) {
-			PrisonPearlPlugin.log(sb.toString());
 			return;
 		}
 		if (!bannedUUIDs_.contains(uuidName)) {
@@ -123,7 +123,6 @@ class BanManager implements Listener {
 		event.disallow(
 			AsyncPlayerPreLoginEvent.Result.KICK_BANNED, banMessage_);
 	}
-	
 
 	private void writeBanJournal() {
 		FileOutputStream fos = null;

@@ -12,7 +12,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
-class AltsList implements Listener {
+import com.untamedears.PrisonPearl.events.AltsListEvent;
+import com.untamedears.PrisonPearl.events.RequestAltsListEvent;
+
+public class AltsList implements Listener {
 	private HashMap<UUID, List<UUID>> altsHash;
 	private PrisonPearlPlugin plugin_;
 

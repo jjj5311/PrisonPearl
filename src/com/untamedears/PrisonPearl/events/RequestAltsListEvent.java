@@ -1,4 +1,4 @@
-package com.untamedears.PrisonPearl;
+package com.untamedears.PrisonPearl.events;
 
 import java.util.List;
 import java.util.UUID;

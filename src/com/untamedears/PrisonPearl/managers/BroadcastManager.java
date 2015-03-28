@@ -1,4 +1,4 @@
-package com.untamedears.PrisonPearl;
+package com.untamedears.PrisonPearl.managers;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -10,7 +10,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-class BroadcastManager {
+public class BroadcastManager {
 	private final Map<Player, Map<Player, Boolean>> broadcasts;
 	private final Map<Player, Player> quickconfirm;
 	

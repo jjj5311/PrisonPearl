@@ -1,4 +1,4 @@
-package com.untamedears.PrisonPearl;
+package com.untamedears.PrisonPearl.managers;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -22,9 +22,17 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
+import com.untamedears.PrisonPearl.PrisonPearlPlugin;
+import com.untamedears.PrisonPearl.PrisonPearlStorage;
+import com.untamedears.PrisonPearl.SaveLoad;
+import com.untamedears.PrisonPearl.database.PrisonPearlMysqlStorage;
+import com.untamedears.PrisonPearl.events.PrisonPearlEvent;
+
 public class PrisonPortaledPlayerManager implements Listener, SaveLoad {
 	private final PrisonPearlPlugin plugin;
 	private final PrisonPearlStorage pearls;
+	private PrisonPearlMysqlStorage mysqlStorage;
+	private boolean isMysql;
 	
 	private final Set<UUID> portaled_players;
 	private boolean dirty;
@@ -32,8 +40,9 @@ public class PrisonPortaledPlayerManager implements Listener, SaveLoad {
 	public PrisonPortaledPlayerManager(PrisonPearlPlugin plugin, PrisonPearlStorage pearls) {
 		this.plugin = plugin;
 		this.pearls = pearls;
-		
+		isMysql = plugin.getPPConfig().getMysqlEnabled();
 		portaled_players = new HashSet<UUID>();
+		mysqlStorage = plugin.getMysqlStorage();
 		
 		Bukkit.getPluginManager().registerEvents(this, plugin);
 	}
@@ -43,6 +52,10 @@ public class PrisonPortaledPlayerManager implements Listener, SaveLoad {
 	}
 	
 	public void load(File file) throws NumberFormatException, IOException {
+		if (isMysql){
+			loadMysql();
+			return;
+		}
 		FileInputStream fis = new FileInputStream(file);
 		BufferedReader br = new BufferedReader(new InputStreamReader(fis));
 		
@@ -56,6 +69,10 @@ public class PrisonPortaledPlayerManager implements Listener, SaveLoad {
 	}
 	
 	public void save(File file) throws IOException {
+		if (isMysql){
+			saveMysql();
+			return;
+		}
 		FileOutputStream fos = new FileOutputStream(file);
 		BufferedWriter br = new BufferedWriter(new OutputStreamWriter(fos));
 		
@@ -84,6 +101,8 @@ public class PrisonPortaledPlayerManager implements Listener, SaveLoad {
 		
 		if (event.getRespawnLocation().getWorld() != getPrisonWorld()) {
 			portaled_players.remove(player.getUniqueId());
+			if (mysqlStorage != null)
+				mysqlStorage.removePortaledPlayer(player.getUniqueId());
 			dirty = true;
 		}
 	}
@@ -99,15 +118,21 @@ public class PrisonPortaledPlayerManager implements Listener, SaveLoad {
 		}
 		if (toLoc.getWorld() == getPrisonWorld())
 			portaled_players.add(player.getUniqueId());
-		else
+		else{
 			portaled_players.remove(player.getUniqueId());
+			if (mysqlStorage != null)
+				mysqlStorage.removePortaledPlayer(player.getUniqueId());
+		}
 		dirty = true;
 	}
 	
 	@EventHandler(priority=EventPriority.MONITOR)
 	public void onPrisonPearlEvent(PrisonPearlEvent event) {
 		if (event.getType() == PrisonPearlEvent.Type.NEW) {
-			portaled_players.remove(event.getPrisonPearl().getImprisonedId());
+			UUID uuid = event.getPrisonPearl().getImprisonedId();
+			portaled_players.remove(uuid);
+			if (mysqlStorage != null)
+				mysqlStorage.removePortaledPlayer(uuid);
 			dirty = true;
 		}
 	}
@@ -115,4 +140,13 @@ public class PrisonPortaledPlayerManager implements Listener, SaveLoad {
 	private World getPrisonWorld() {
 		return Bukkit.getWorld(plugin.getConfig().getString("prison_world"));
 	}
+	
+	public void loadMysql(){
+    	portaled_players.addAll(mysqlStorage.getAllPortaledPlayers());
+    }
+    
+    public void saveMysql(){
+    	for (UUID uuid: portaled_players)
+    		mysqlStorage.addPortaledPlayer(uuid);
+    }
 }

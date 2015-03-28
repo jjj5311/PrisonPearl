@@ -1,4 +1,4 @@
-package com.untamedears.PrisonPearl;
+package com.untamedears.PrisonPearl.managers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,15 +56,26 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitTask;
 
-class PrisonPearlManager implements Listener {
+import vg.civcraft.mc.mercury.MercuryAPI;
+
+import com.untamedears.PrisonPearl.EnderExpansion;
+import com.untamedears.PrisonPearl.PrisonPearl;
+import com.untamedears.PrisonPearl.PrisonPearlPlugin;
+import com.untamedears.PrisonPearl.PrisonPearlStorage;
+import com.untamedears.PrisonPearl.events.PrisonCommandEvent;
+import com.untamedears.PrisonPearl.events.PrisonPearlEvent;
+
+public class PrisonPearlManager implements Listener {
 	private final PrisonPearlPlugin plugin;
 	private final PrisonPearlStorage pearls;
 	private EnderExpansion ee;
+	private boolean isMercury;
 
 	public PrisonPearlManager(PrisonPearlPlugin plugin, PrisonPearlStorage pearls, EnderExpansion ee) {
 		this.plugin = plugin;
 		this.pearls = pearls;
 		this.ee = ee;
+		isMercury = plugin.isMercuryLoaded();
 		Bukkit.getPluginManager().registerEvents(this, plugin);
 	}
 
@@ -156,6 +167,7 @@ class PrisonPearlManager implements Listener {
 					" uuid: " + pp.getImprisonedId());
 			return false;
 		}
+		updateLocationToMercury(pp, PrisonPearlEvent.Type.NEW);
 		pp.markMove();
 
 		// Create the inventory item
@@ -200,6 +212,7 @@ class PrisonPearlManager implements Listener {
 		// unban alts and players if they are allowed to be
 		plugin.checkBan(pp.getImprisonedId());
 		plugin.checkBanForAlts(pp.getImprisonedId());
+		updateLocationToMercury(pp, PrisonPearlEvent.Type.FREED);
 		return true;
 	}
 
@@ -300,7 +313,9 @@ class PrisonPearlManager implements Listener {
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		Player imprisoner = event.getPlayer();
 		CombatTagManager ctm = plugin.getCombatTagManager();
-		if (ctm.isCombatTagged(imprisoner)) { // if player is tagged
+		if (ctm.isCombatTagged(imprisoner) || 
+				PrisonPearlStorage.transferedPlayers.contains(imprisoner.getUniqueId())) { 
+			// if player is tagged or if player is transfered to another server.
 			return;
 		}
 		Location loc = imprisoner.getLocation();
@@ -696,6 +711,7 @@ class PrisonPearlManager implements Listener {
 		pearls.markDirty();
 		Bukkit.getPluginManager().callEvent(
 				new PrisonPearlEvent(pp, PrisonPearlEvent.Type.DROPPED));
+		updateLocationToMercury(pp, PrisonPearlEvent.Type.DROPPED);
 	}
 
 	private void updatePearl(PrisonPearl pp, Player player) {
@@ -711,6 +727,7 @@ class PrisonPearlManager implements Listener {
 		pearls.markDirty();
 		Bukkit.getPluginManager().callEvent(
 				new PrisonPearlEvent(pp, PrisonPearlEvent.Type.HELD));
+		updateLocationToMercury(pp, PrisonPearlEvent.Type.HELD);
 	}
 
 	private <ItemBlock extends InventoryHolder & BlockState> void updatePearl(
@@ -719,9 +736,8 @@ class PrisonPearlManager implements Listener {
 		pearls.markDirty();
 		Bukkit.getPluginManager().callEvent(
 				new PrisonPearlEvent(pp, PrisonPearlEvent.Type.HELD));
+		updateLocationToMercury(pp, PrisonPearlEvent.Type.HELD);
 	}
-	
-	
 
 	private boolean prisonPearlEvent(PrisonPearl pp, PrisonPearlEvent.Type type) {
 		return prisonPearlEvent(pp, type, null);
@@ -740,6 +756,21 @@ class PrisonPearlManager implements Listener {
 	}
 	private Configuration getConfig() {
 		return plugin.getConfig();
+	}
+	
+	private void updateLocationToMercury(PrisonPearl pp, PrisonPearlEvent.Type type){
+		if (isMercury){
+			String message = "";
+			Location loc = pp.getLocation();
+			message = type.name() + " " + pp.getImprisonedId().toString() + " " + pp.getImprisonedName() + " " + pp.getID() + " " +
+			loc.getWorld().getName() + " " + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ();
+			
+			Player p;
+			if ((p = pp.getHolderPlayer()) != null){
+				message += " " + p.getName();
+			}
+			MercuryAPI.instance.sendMessage(message, "PrisonPearlUpdate");
+		}
 	}
 
 }

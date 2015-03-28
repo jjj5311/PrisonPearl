@@ -12,6 +12,12 @@ public class PPConfig {
 	private double summon_broadcast_distance = 64.0D;
 	private int chunkDelay;
 	private int getMaxDistancePearls; // The further point from 0,0 that pearls can be during feed.
+	private boolean mysqlEnabled;
+	private String mysqlDbname;
+	private String mysqlHost;
+	private String mysqlUsername;
+	private String mysqlPassword;
+	private int mysqlPort;
 	
 	public PPConfig(ConfigurationSection config) {
 		this.upkeep_resource = config.getInt("upkeep.resource");
@@ -31,6 +37,12 @@ public class PPConfig {
 			ppsummon_leave_pearls = false;
 		}
 		this.getMaxDistancePearls = config.getInt("upkeep.distance", 0);
+		this.mysqlEnabled = config.getBoolean("mysql.enabled", false);
+		this.mysqlDbname = config.getString("mysql.dbname", "PrisonPearl");
+		this.mysqlHost = config.getString("mysql.host", "localhost");
+		this.mysqlUsername = config.getString("mysql.username", "bukkit");
+		this.mysqlPassword = config.getString("mysql.password", "");
+		this.mysqlPort = config.getInt("mysql.port", 3306);
 	}
 
 	public ItemStack getUpkeepResource() {
@@ -59,5 +71,29 @@ public class PPConfig {
 	
 	public int getMaxFeedDistance(){
 		return getMaxDistancePearls;
+	}
+	
+	public boolean getMysqlEnabled(){
+		return mysqlEnabled;
+	}
+	
+	public String getMysqlHost(){
+		return mysqlHost;
+	}
+	
+	public String getMysqlUsername(){
+		return mysqlUsername;
+	}
+	
+	public String getMysqlPassword(){
+		return mysqlPassword;
+	}
+	
+	public int getMysqlPort(){
+		return mysqlPort;
+	}
+	
+	public String getMysqlDbname(){
+		return mysqlDbname;
 	}
 }

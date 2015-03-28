@@ -47,6 +47,18 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.untamedears.PrisonPearl.database.PrisonPearlMysqlStorage;
+import com.untamedears.PrisonPearl.events.PrisonPearlEvent;
+import com.untamedears.PrisonPearl.events.SummonEvent;
+import com.untamedears.PrisonPearl.managers.BanManager;
+import com.untamedears.PrisonPearl.managers.BroadcastManager;
+import com.untamedears.PrisonPearl.managers.CombatTagManager;
+import com.untamedears.PrisonPearl.managers.DamageLogManager;
+import com.untamedears.PrisonPearl.managers.PrisonPearlManager;
+import com.untamedears.PrisonPearl.managers.PrisonPortaledPlayerManager;
+import com.untamedears.PrisonPearl.managers.SummonManager;
+
+import vg.civcraft.mc.mercury.MercuryAPI;
 import vg.civcraft.mc.namelayer.NameAPI;
 
 public class PrisonPearlPlugin extends JavaPlugin implements Listener {
@@ -74,6 +86,8 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	private CombatTagManager combatTagManager;
 	
 	private boolean isNameLayer;
+	private boolean isMercury;
+	private PrisonPearlMysqlStorage mysqlStorage = null;
 	
 	private Map<String, PermissionAttachment> attachments;
 	
@@ -81,6 +95,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	
 	public void onEnable() {
 		isNameLayer = Bukkit.getPluginManager().isPluginEnabled("NameLayer");
+		isMercury = Bukkit.getPluginManager().isPluginEnabled("Mercury");
 		globalInstance = this;
 		File dat = getDataFolder();
 		data=dat;
@@ -173,6 +188,19 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			//catch(Exception e){
 				//System.out.println("A straight foolish error has occurred while loading PrisonPearl.");
 			//}
+		}
+		
+		if (isMercury){
+			getServer().getPluginManager().registerEvents(new MercuryListener(this, pearls), this);
+			MercuryAPI.instance.registerPluginMessageChannel(this, MercuryListener.channels);
+			Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable(){
+
+				@Override
+				public void run() {
+					updateAllPearlLocations();
+				}
+				
+			}, 300, 150);
 		}
 	}
 
@@ -1132,5 +1160,29 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
     	int maxFeedDistance = getPPConfig().getMaxFeedDistance();
     	return maxFeedDistance != 0 && Math.sqrt(Math.pow(loc.getX(), 2) + Math.pow(loc.getZ(), 2)) 
     			> maxFeedDistance;
+    }
+    
+    public boolean isMercuryLoaded(){
+    	return isMercury;
+    }
+    
+    public boolean isNameLayerLoaded(){
+    	return isNameLayer;
+    }
+    
+    public PrisonPearlMysqlStorage getMysqlStorage(){
+    	if (mysqlStorage == null && ppconfig.getMysqlEnabled())
+    		mysqlStorage = new PrisonPearlMysqlStorage(this);
+    	return mysqlStorage;
+    }
+    
+    private void updateAllPearlLocations(){
+    	List<UUID> uuids = pearls.getAllUUIDSforPearls();
+    	for (UUID uuid: uuids){
+    		PrisonPearl pp = pearls.getByImprisoned(uuid);
+    		Location loc = pp.getLocation();
+    		String message = uuid.toString() + " " + loc.getWorld().getName() + " " + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ();
+    		MercuryAPI.instance.sendMessage(message, "PrisonPearlMove");
+    	}
     }
 }

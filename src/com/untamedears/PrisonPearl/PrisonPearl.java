@@ -28,20 +28,30 @@ public class PrisonPearl {
             player = p;
             item = null;
             blocklocation = null;
+            supposedPearlLocation = null;
         }
         public Holder(Item i) {
             player = null;
             item = i;
             blocklocation = null;
+            supposedPearlLocation = null;
         }
         public Holder(Location bl) {
             player = null;
             item = null;
             blocklocation = bl;
+            supposedPearlLocation = null;
+        }
+        public Holder(FakeLocation loc){
+        	player = null;
+            item = null;
+            blocklocation = null;
+            supposedPearlLocation = loc;
         }
         public final Player player;
         public final Item item;
         public final Location blocklocation;
+        public final FakeLocation supposedPearlLocation;
     }
     // Mostly used as a Deque, but clear() is used from LinkedList
     private LinkedList<Holder> holders = new LinkedList<Holder>();
@@ -61,6 +71,13 @@ public class PrisonPearl {
 	}
 	
     public PrisonPearl(short id, String imprisonedName, UUID imprisonedId, Location blocklocation) {
+		this.id = id;
+		this.imprisonedName = imprisonedName;
+		this.imprisonedId = imprisonedId;
+		this.holders.addFirst(new Holder(blocklocation));
+	}
+    
+    public PrisonPearl(short id, String imprisonedName, UUID imprisonedId, FakeLocation blocklocation) {
 		this.id = id;
 		this.imprisonedName = imprisonedName;
 		this.imprisonedId = imprisonedId;
@@ -163,7 +180,10 @@ public class PrisonPearl {
 				PrisonPearlPlugin.info("PrisonPearl " + id + " is inside an unknown block " + getHolderBlockState(holder).getType().toString());
 				return "an unknown block"; 
 			}
-		} else {
+		} else if (holder.supposedPearlLocation != null){
+			return "another server";
+		}
+		else {
 			PrisonPearlPlugin.info("PrisonPearl " + id + " has no player, item, nor location");
 			return "unknown"; 
 		}
@@ -180,7 +200,10 @@ public class PrisonPearl {
 			return holder.item.getLocation();
 		} else if (holder.blocklocation != null) {
 			return holder.blocklocation;
-		} else {
+		} else if (holder.supposedPearlLocation != null){
+			return holder.supposedPearlLocation;
+		}
+		else {
 			throw new RuntimeException("PrisonPearl " + id + " has no player, item, nor location");
 		}
 	}
@@ -200,12 +223,12 @@ public class PrisonPearl {
 		BLOCK_STACK_NULL,
 		NOT_BLOCK_INVENTORY,
 		NO_ITEM_PLAYER_OR_LOCATION, //True after here
+		OTHER_SERVER,
 		ON_GROUND,
 		IN_HAND,
 		IN_CHEST,
 		IN_VIEWER_HAND,
 		TIME
-
 	}
 
 	public HolderVerReason verifyHolder(Holder holder, StringBuilder feedback) {
@@ -275,7 +298,11 @@ public class PrisonPearl {
 				feedback.append(String.format(
 					"In %s at (%d,%d,%d)", bs.getType().toString(),
 					bsLoc.getBlockX(), bsLoc.getBlockY(), bsLoc.getBlockZ()));
-			} else {
+			} else if (holder.supposedPearlLocation != null){
+				feedback.append("Pearl is not located on current server. Assuming it is legit until told otherwise.");
+				return HolderVerReason.OTHER_SERVER;
+			}
+			else {
 				feedback.append("Has no player, item, nor location");
 				return HolderVerReason.NO_ITEM_PLAYER_OR_LOCATION;
 			}

@@ -48,6 +48,12 @@
       <version>2.1.1</version>
       <scope>provided</scope>
     </dependency>
+	<dependency>
+      <groupId>vg.civcraft.mc.mercury</groupId>
+      <artifactId>Mercury</artifactId>
+      <version>1.0.1-11</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
   
   <repositories>
@@ -58,6 +64,10 @@
     <repository>
       <id>NameLayer-repo</id>
       <url>http://192.99.169.83:8080/plugin/repository/project/NameLayer-master/Build/20/repository/</url>
+    </repository>
+	<repository>
+      <id>Mercury-repo</id>
+      <url>http://192.99.169.83:8080/plugin/repository/project/Mercury/Build/11/repository/</url>
     </repository>
   </repositories>
 </project>

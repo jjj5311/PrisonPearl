@@ -1,4 +1,4 @@
-package com.untamedears.PrisonPearl;
+package com.untamedears.PrisonPearl.managers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,7 +22,10 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-class DamageLogManager implements Runnable, Listener {
+import com.untamedears.PrisonPearl.DamageLog;
+import com.untamedears.PrisonPearl.PrisonPearlPlugin;
+
+public class DamageLogManager implements Runnable, Listener {
 	private final PrisonPearlPlugin plugin;
 
 	private boolean scheduled;

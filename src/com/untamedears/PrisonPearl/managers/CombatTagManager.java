@@ -1,4 +1,4 @@
-package com.untamedears.PrisonPearl;
+package com.untamedears.PrisonPearl.managers;
 
 import java.util.logging.Logger;
 
@@ -10,7 +10,7 @@ import com.trc202.CombatTag.CombatTag;
 import com.trc202.CombatTagApi.CombatTagApi;
 
 
-class CombatTagManager {
+public class CombatTagManager {
 	private CombatTagApi combatTagApi;
 	private boolean combatTagEnabled = false;
 
