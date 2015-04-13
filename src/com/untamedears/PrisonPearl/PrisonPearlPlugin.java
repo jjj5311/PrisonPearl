@@ -57,6 +57,8 @@ import com.untamedears.PrisonPearl.managers.DamageLogManager;
 import com.untamedears.PrisonPearl.managers.PrisonPearlManager;
 import com.untamedears.PrisonPearl.managers.PrisonPortaledPlayerManager;
 import com.untamedears.PrisonPearl.managers.SummonManager;
+import com.wimbli.WorldBorder.BorderData;
+import com.wimbli.WorldBorder.Config;
 
 import vg.civcraft.mc.mercury.MercuryAPI;
 import vg.civcraft.mc.namelayer.NameAPI;
@@ -87,6 +89,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	
 	private boolean isNameLayer;
 	private boolean isMercury;
+	private boolean isWorldBorder;
 	private PrisonPearlMysqlStorage mysqlStorage = null;
 	
 	private Map<String, PermissionAttachment> attachments;
@@ -96,6 +99,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	public void onEnable() {
 		isNameLayer = Bukkit.getPluginManager().isPluginEnabled("NameLayer");
 		isMercury = Bukkit.getPluginManager().isPluginEnabled("Mercury");
+		isWorldBorder = Bukkit.getPluginManager().isPluginEnabled("WorldBorder");
 		globalInstance = this;
 		File dat = getDataFolder();
 		data=dat;
@@ -1157,9 +1161,12 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
     }
     
     public boolean isMaxFeed(Location loc){
-    	int maxFeedDistance = getPPConfig().getMaxFeedDistance();
-    	return maxFeedDistance != 0 && Math.sqrt(Math.pow(loc.getX(), 2) + Math.pow(loc.getZ(), 2)) 
-    			> maxFeedDistance;
+    	if(!getPPConfig().getFreeOutsideWorldBorder() || !isWorldBorder) {
+    		return false;
+    	}
+    	World world = loc.getWorld();
+    	BorderData border = Config.Border(world.getName());
+    	return !border.insideBorder(loc);
     }
     
     public boolean isMercuryLoaded(){
