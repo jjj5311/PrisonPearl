@@ -67,11 +67,14 @@ public class PrisonPearlMysqlStorage {
 				+ "canDamage tinyint(1),"
 				+ "canBreak tinyint(1),"
 				+ "primary key uuid_key(uuid));");
+		db.execute("create table if not exists FeedDelay("
+				+ "lastRestart long not null);");
 	}
 
 	private PreparedStatement addPearl, removePearl, getPearl, getAllPearls, updatePearl;
 	private PreparedStatement addPortaledPlayer, removePortaledPlayer, getAllPortaledPlayers;
 	private PreparedStatement addSummonedPlayer, removeSummonedPlayer, updateSummonedPlayer, getAllSummonedPlayer;
+	private PreparedStatement updateLastRestart, getLastRestart;
 	
 	public void initializeStatements() {
 		addPearl = db.prepareStatement("insert into PrisonPearls(ids, uuid, world, x, y, z, motd)"
@@ -97,6 +100,9 @@ public class PrisonPearlMysqlStorage {
 				+ "and damage = ? and canSpeak = ? and canDamage = ? and canBreak = ? "
 				+ "where uuid = ?;");
 		getAllSummonedPlayer = db.prepareStatement("select * from PrisonPearlSummon;");
+		updateLastRestart = db.prepareStatement("update FeedDelay "
+				+ "set lastRestart = ?;");
+		getLastRestart = db.prepareStatement("select * from FeedDelay");
 	}
 
 	public void reconnectAndReinitialize() {
@@ -316,5 +322,25 @@ public class PrisonPearlMysqlStorage {
 			e.printStackTrace();
 		}
 		return summons;
+	}
+	
+	public void updateLastRestart(long lastRestart) {
+		try {
+			updateLastRestart.setLong(1, lastRestart);
+			updateLastRestart.execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public long getLastRestart() {
+		long lastRestart = 0;
+		try {
+			ResultSet result = getLastRestart.executeQuery();
+			lastRestart = result.getLong("lastRestart");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return lastRestart;
 	}
 }
