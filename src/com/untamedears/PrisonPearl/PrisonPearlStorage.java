@@ -32,10 +32,10 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import vg.civcraft.mc.namelayer.NameAPI;
+
 import com.untamedears.PrisonPearl.database.PrisonPearlMysqlStorage;
 import com.untamedears.PrisonPearl.managers.PrisonPearlManager;
-
-import vg.civcraft.mc.namelayer.NameAPI;
 
 //import com.untamedears.EnderExpansion.Enderplugin;
 
@@ -46,6 +46,8 @@ public class PrisonPearlStorage implements SaveLoad {
 	
 	public static List<UUID> transferedPlayers = new ArrayList<UUID>();
 	private short nextid;
+	
+	private long lastFeed = 0;
 	
 	private boolean isNameLayer;
 	private boolean isMysql;
@@ -96,6 +98,10 @@ public class PrisonPearlStorage implements SaveLoad {
 		
 		String line;
 		while ((line = br.readLine()) != null) {
+			if(line.matches("lastFeed:([0-9]+)")) {
+				lastFeed = Long.parseLong(line.split(":")[1]);
+				continue;
+			}
 			String parts[] = line.split(" ");
 			short id = Short.parseShort(parts[0]);
 			UUID imprisoned = UUID.fromString(parts[1]);
@@ -157,7 +163,7 @@ public class PrisonPearlStorage implements SaveLoad {
 			br.append(pp.getMotd());
 			br.append("\n");
 		}
-		
+		br.write("lastFeed:" + lastFeed);
 		br.flush();
 		fos.close();
 		
@@ -401,6 +407,14 @@ public class PrisonPearlStorage implements SaveLoad {
 		long inactive_hours = this.getConfig().getLong("ignore_feed.hours", 0);
 		long inactive_days = this.getConfig().getLong("ignore_feed.days", 0);
 
+		long feedDelay = getConfig().getLong("feed_delay", 72000000);	//if pearls have been fed in the last x millis it wont feed, defaults to 20 hours
+		if(lastFeed >= System.currentTimeMillis() - feedDelay) {
+			return "Pearls have already been fed, not gonna do it again just yet";
+		} else {
+			log+="\nSetting last feed time";
+			lastFeed = System.currentTimeMillis();
+		}
+		
 		int pearlsfed = 0;
 		int coalfed = 0;
 		int freedpearls = 0;
@@ -497,6 +511,7 @@ public class PrisonPearlStorage implements SaveLoad {
     		pearls_byid.put(pearl.getID(), pearl);
     		pearls_byimprisoned.put(pearl.getImprisonedId(), pearl);
     	}
+    	lastFeed = PrisonPearlMysqlStorage.getLastRestart();
     }
     
     public void saveMysql(){
@@ -505,6 +520,7 @@ public class PrisonPearlStorage implements SaveLoad {
     			continue;
     		PrisonPearlMysqlStorage.updatePearl(pp);
     	}
+    	PrisonPearlMysqlStorage.updateLastRestart(lastFeed);
     }
     
     public static void playerIsTransfering(final UUID uuid){

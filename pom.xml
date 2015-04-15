@@ -54,6 +54,11 @@
       <version>1.0.1-11</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>com.wimbli</groupId>
+      <artifactId>WorldBorder</artifactId>
+      <version>1.8.3</version>
+      <scope>provided</scope>
   </dependencies>
   
   <repositories>

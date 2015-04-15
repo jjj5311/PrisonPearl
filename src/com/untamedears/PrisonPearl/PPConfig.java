@@ -11,7 +11,7 @@ public class PPConfig {
 	private boolean ppsummon_leave_pearls;
 	private double summon_broadcast_distance = 64.0D;
 	private int chunkDelay;
-	private int getMaxDistancePearls; // The further point from 0,0 that pearls can be during feed.
+	private boolean freeOutsideWorldBorder;
 	private boolean mysqlEnabled;
 	private String mysqlDbname;
 	private String mysqlHost;
@@ -36,7 +36,7 @@ public class PPConfig {
 			ppsummon_clear_inventory = false;
 			ppsummon_leave_pearls = false;
 		}
-		this.getMaxDistancePearls = config.getInt("upkeep.distance", 0);
+		this.freeOutsideWorldBorder = config.getBoolean("autofree_worldborder", true);
 		this.mysqlEnabled = config.getBoolean("mysql.enabled", false);
 		this.mysqlDbname = config.getString("mysql.dbname", "PrisonPearl");
 		this.mysqlHost = config.getString("mysql.host", "localhost");
@@ -69,8 +69,8 @@ public class PPConfig {
 		return chunkDelay;
 	}
 	
-	public int getMaxFeedDistance(){
-		return getMaxDistancePearls;
+	public boolean getFreeOutsideWorldBorder() {
+		return this.freeOutsideWorldBorder;
 	}
 	
 	public boolean getMysqlEnabled(){

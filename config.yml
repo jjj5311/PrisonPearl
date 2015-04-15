@@ -27,6 +27,8 @@ ignore_feed:
   days: 0
   hours: 0
   seconds: 0
+feed_delay: 72000000
+autofree_worldborder: true
 deny_pearls_worlds:
   - world_nether
 mysql:
