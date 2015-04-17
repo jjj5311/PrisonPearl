@@ -522,7 +522,7 @@ public class PrisonPearlStorage implements SaveLoad {
     			continue;
     		PrisonPearlMysqlStorage.updatePearl(pp);
     	}
-    	lastFeed = PrisonPearlMysqlStorage.getLastRestart();
+    	PrisonPearlMysqlStorage.updateLastRestart(lastFeed);
     }
     
     public static void playerIsTransfering(final UUID uuid){
