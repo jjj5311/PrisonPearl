@@ -21,6 +21,7 @@ import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.projectiles.ProjectileSource;
 
 import com.untamedears.PrisonPearl.DamageLog;
 import com.untamedears.PrisonPearl.PrisonPearlPlugin;
@@ -82,7 +83,11 @@ public class DamageLogManager implements Runnable, Listener {
 	
 	@EventHandler(priority=EventPriority.MONITOR)
 	public void onPotionSplashEvent(PotionSplashEvent event) {
-		LivingEntity shooter = event.getPotion().getShooter();
+		ProjectileSource ps = event.getPotion().getShooter();
+		LivingEntity shooter;
+		if (!(ps instanceof LivingEntity))
+			return;
+		shooter = (LivingEntity) ps;
 		if (!(shooter instanceof Player))
 			return;
 		Player damager = (Player)shooter;

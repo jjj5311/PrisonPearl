@@ -9,7 +9,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -21,8 +20,6 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import net.minecraft.server.v1_7_R4.Item;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -59,7 +56,6 @@ import com.untamedears.PrisonPearl.managers.PrisonPortaledPlayerManager;
 import com.untamedears.PrisonPearl.managers.SummonManager;
 import com.wimbli.WorldBorder.BorderData;
 import com.wimbli.WorldBorder.Config;
-
 import vg.civcraft.mc.mercury.MercuryAPI;
 import vg.civcraft.mc.namelayer.NameAPI;
 
@@ -103,12 +99,6 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		globalInstance = this;
 		File dat = getDataFolder();
 		data=dat;
-	try {
-    	    Metrics metrics = new Metrics(this);// Metrics support
-    	    metrics.start();
-    	} catch (IOException e) {
-    	    // Failed to submit the stats :-(
-    	}
 		getConfig().options().copyDefaults(true);
 		saveConfig();
 		
@@ -166,18 +156,6 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 				continue;
 			
 			getCommand(command).setExecutor(commands);
-		}
-
-		// shamelessly swiped from bookworm, not sure why there isn't a Bukkit API for this
-		// this causes items to be stacked by their durability value
-		try {
-			Method method = Item.class.getDeclaredMethod("a", boolean.class);
-			if (method.getReturnType() == Item.class) {
-				method.setAccessible(true);
-				method.invoke(Item.REGISTRY.get("ender_pearl"), true);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
 		
 		attachments = new HashMap<String, PermissionAttachment>();

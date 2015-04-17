@@ -16,6 +16,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.TreeType;
 import org.bukkit.World;
+import org.bukkit.WorldBorder;
 import org.bukkit.WorldType;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
@@ -770,6 +771,18 @@ public class FakeLocation extends Location{
 		public boolean unloadChunkRequest(int arg0, int arg1, boolean arg2) {
 			// TODO Auto-generated method stub
 			return false;
+		}
+
+		@Override
+		public WorldBorder getWorldBorder() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public Spigot spigot() {
+			// TODO Auto-generated method stub
+			return null;
 		}
 	}
 }
