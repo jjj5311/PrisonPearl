@@ -60,6 +60,12 @@
       <version>1.8.3</version>
       <scope>provided</scope>
     </dependency>
+	<dependency>
+      <groupId>com.trc202</groupId>
+      <artifactId>Combattag</artifactId>
+      <version>1.8.3</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
   
   <repositories>
