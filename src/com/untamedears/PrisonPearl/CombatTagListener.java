@@ -7,7 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
-import com.topcat.npclib.entity.NPC;
+import com.trc202.CombatTag.libs.npclib.NPC;
 import com.trc202.CombatTagEvents.NpcDespawnEvent;
 import com.trc202.CombatTagEvents.NpcDespawnReason;
 import com.untamedears.PrisonPearl.managers.PrisonPearlManager;
@@ -28,7 +28,7 @@ class CombatTagListener implements Listener {
         }
         UUID plruuid = event.getPlayerUUID();
         NPC npc = event.getNpc();
-        Location loc = npc.getBukkitEntity().getLocation();
+        Location loc = npc.getEntity().getLocation();
 
         pearlman_.handleNpcDespawn(plruuid, loc);
     }
