@@ -54,8 +54,10 @@ import com.untamedears.PrisonPearl.managers.DamageLogManager;
 import com.untamedears.PrisonPearl.managers.PrisonPearlManager;
 import com.untamedears.PrisonPearl.managers.PrisonPortaledPlayerManager;
 import com.untamedears.PrisonPearl.managers.SummonManager;
+import com.untamedears.PrisonPearl.managers.WorldBorderManager;
 import com.wimbli.WorldBorder.BorderData;
 import com.wimbli.WorldBorder.Config;
+
 import vg.civcraft.mc.mercury.MercuryAPI;
 import vg.civcraft.mc.namelayer.NameAPI;
 
@@ -73,6 +75,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	private BroadcastManager broadcastman;
 	private AltsList altsList;
 	private BanManager banManager_;
+	private WorldBorderManager wbManager;
 	private static File data;
 	private static Logger log;
 	private static final Integer maxImprisonedAlts = 2;
@@ -132,6 +135,8 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		load(portalman, getPortaledPlayersFile());
 		broadcastman = new BroadcastManager();
 		combatTagManager = new CombatTagManager(this.getServer(), log);
+		wbManager = new WorldBorderManager(this);
+		load(wbManager, getWhiteListedCordsFile());
 		loadAlts();
 		// Isnt needed since loadAlts() does this already
 		// checkBanAllAlts();
@@ -372,6 +377,8 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			save(summonman, getSummonFile());
 		if (force || portalman.isDirty())
 			save(portalman, getPortaledPlayersFile());
+		if (force || wbManager.isDirty())
+			save(wbManager, getWhiteListedCordsFile());
 	}
 	
 	private static void load(SaveLoad obj, File file) {
@@ -423,6 +430,9 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		return new File(getDataFolder(), "portaledplayersUUID.txt");
 	}
 	
+	private File getWhiteListedCordsFile() {
+		return new File(getDataFolder(), "whitelistedcords.txt");
+	}
 	
 	private File getAltsListFile() {
 		return getFile("altsUUID.txt");
@@ -765,7 +775,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	}
 	
 	
-	private World getFreeWorld() {
+	public World getFreeWorld() {
 		return Bukkit.getWorld(getConfig().getString("free_world"));
 	}
 	
@@ -1146,7 +1156,9 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
     	BorderData border = Config.Border(world.getName());
     	return !border.insideBorder(loc);
     }
-    
+    public boolean isWorldBorder(){
+    	return isWorldBorder;
+    }
     public boolean isMercuryLoaded(){
     	return isMercury;
     }
