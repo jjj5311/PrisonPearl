@@ -55,8 +55,6 @@ import com.untamedears.PrisonPearl.managers.PrisonPearlManager;
 import com.untamedears.PrisonPearl.managers.PrisonPortaledPlayerManager;
 import com.untamedears.PrisonPearl.managers.SummonManager;
 import com.untamedears.PrisonPearl.managers.WorldBorderManager;
-import com.wimbli.WorldBorder.BorderData;
-import com.wimbli.WorldBorder.Config;
 
 import vg.civcraft.mc.mercury.MercuryAPI;
 import vg.civcraft.mc.namelayer.NameAPI;
@@ -1128,6 +1126,10 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
     public BanManager getBanManager() {
         return banManager_;
     }
+    
+    public WorldBorderManager getWBManager() {
+        return wbManager;
+    }
 
     /**
      * Log a message to plugin {@link Logger}.
@@ -1148,14 +1150,6 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
     							location.getBlockX(), location.getBlockY(), location.getBlockZ());
     }
     
-    public boolean isMaxFeed(Location loc){
-    	if(!getPPConfig().getFreeOutsideWorldBorder() || !isWorldBorder) {
-    		return false;
-    	}
-    	World world = loc.getWorld();
-    	BorderData border = Config.Border(world.getName());
-    	return !border.insideBorder(loc);
-    }
     public boolean isWorldBorder(){
     	return isWorldBorder;
     }

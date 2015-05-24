@@ -20,6 +20,7 @@ import com.untamedears.PrisonPearl.managers.BroadcastManager;
 import com.untamedears.PrisonPearl.managers.DamageLogManager;
 import com.untamedears.PrisonPearl.managers.PrisonPearlManager;
 import com.untamedears.PrisonPearl.managers.SummonManager;
+import com.untamedears.PrisonPearl.managers.WorldBorderManager;
 
 import vg.civcraft.mc.namelayer.NameAPI;
 
@@ -30,16 +31,18 @@ class PrisonPearlCommands implements CommandExecutor {
     private final PrisonPearlManager pearlman;
     private final SummonManager summonman;
     private final BroadcastManager broadcastman;
+    private final WorldBorderManager wbManager;
     private boolean isNameLayer;
     private boolean isMercury;
 
-    public PrisonPearlCommands(PrisonPearlPlugin plugin, DamageLogManager damageman, PrisonPearlStorage pearls, PrisonPearlManager pearlman, SummonManager summonman, BroadcastManager broadcastman) {
+    public PrisonPearlCommands(PrisonPearlPlugin plugin, DamageLogManager damageman, PrisonPearlStorage pearls, PrisonPearlManager pearlman, SummonManager summonman, BroadcastManager broadcastman, WorldBorderManager wbManager) {
         this.plugin = plugin;
         this.pearls = pearls;
         this.damageman = damageman;
         this.pearlman = pearlman;
         this.summonman = summonman;
         this.broadcastman = broadcastman;
+        this.wbManager = wbManager;
         isNameLayer = Bukkit.getPluginManager().isPluginEnabled("NameLayer");
         isMercury = plugin.isMercuryLoaded();
     }
@@ -177,9 +180,33 @@ class PrisonPearlCommands implements CommandExecutor {
         	return banAlt(sender, args);
         } else if (label.equalsIgnoreCase("ppunban")){
         	return unBanAlt(sender, args);
+        } else if (label.equalsIgnoreCase("ppwb")){
+        	if(sender.hasPermission("prisonpearl.wb")) {// sees if the players has the permission.
+                return WhiteListedLocations(sender, args);}
+            else{ sender.sendMessage("You Do not have Permissions prisonpearl.wb");}// if players doesn't have permission, broadcasts message saying what they are missing.
         }
         return false;
     }
+
+	private boolean WhiteListedLocations(CommandSender sender, String[] args) {
+		if (args.length != 4)
+    	{
+    		return false;
+    	}
+		if(args[0].equals("add")){
+			if(!wbManager.addWhitelistedLocation(args[1], args[2], args[3])){
+				return false;
+			}
+			sender.sendMessage(ChatColor.GREEN + "Location was added.");
+		}else if(args[0].equals("remove")){
+			if(!wbManager.removeWhitelistedLocation(args[1], args[2], args[3])){
+				sender.sendMessage(ChatColor.RED + "Location wasnt found.");
+				return false;
+			}
+			sender.sendMessage(ChatColor.GREEN + "Location was removed.");
+		}
+		return false;
+	}
 
 	private boolean unBanAlt(CommandSender sender, String[] args) {
 		String name = args[0];

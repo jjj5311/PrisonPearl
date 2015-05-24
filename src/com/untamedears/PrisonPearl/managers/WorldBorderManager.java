@@ -11,6 +11,7 @@ import java.io.OutputStreamWriter;
 import java.util.List;
 import java.util.logging.Level;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 
@@ -40,7 +41,12 @@ public class WorldBorderManager implements SaveLoad{
     }
     
     public boolean isOnWhiteList(Location loc){
-    	return WhiteListedLocations.contains(loc);
+    	for(Location whLoc : WhiteListedLocations){
+    		if(whLoc.equals(loc)){
+    			return true;
+    		}
+    	}
+    	return false;
     }
     
     public boolean isDirty() {
@@ -74,12 +80,17 @@ public class WorldBorderManager implements SaveLoad{
 				plugin.getLogger().log(Level.INFO, ("Reading curLine: " + line));
 				String parts[] = line.split(",");
 				if(parts.length==3){
-					Double x = stringToDouble(parts[0]);
-					Double y = stringToDouble(parts[1]);
-					Double z = stringToDouble(parts[2]);
-					Location loc = new Location(plugin.getFreeWorld(), x, y, z);
-					WhiteListedLocations.add(loc);
-					plugin.getLogger().log(Level.INFO, ("Reading curLine: " + "Adding location=" +loc));
+					try{
+						Double x = stringToDouble(parts[0]);
+						Double y = stringToDouble(parts[1]);
+						Double z = stringToDouble(parts[2]);
+						Location loc = new Location(plugin.getFreeWorld(), x, y, z);
+						WhiteListedLocations.add(loc);
+						plugin.getLogger().log(Level.INFO, ("Adding location=" +loc));
+					}catch(NumberFormatException e){
+						plugin.getLogger().log(Level.WARNING, "Current line is not in the right format");
+						e.printStackTrace();
+					}
 				}else{
 					plugin.getLogger().log(Level.WARNING, "Current line is not in the right format");
 				}
@@ -94,9 +105,48 @@ public class WorldBorderManager implements SaveLoad{
     	return Double.parseDouble(str);
     }
     
-    public void addWhitelistedLocation(Location loc){
+    public boolean addWhitelistedLocation(Location loc){
     	WhiteListedLocations.add(loc);
     	dirty=true;
+    	return true;
+    }
+    public boolean removeWhitelistedLocation(Location loc){
+    	for(Location whLoc : WhiteListedLocations){
+    		if(whLoc.equals(loc)){
+    			WhiteListedLocations.remove(whLoc);
+    			dirty=true;
+    			return true;
+    		}
+    	}
+    	return false;
+    }
+    public boolean addWhitelistedLocation(String x, String y, String z){
+    	try{
+    		Double xd = stringToDouble(x);
+			Double yd = stringToDouble(y);
+			Double zd = stringToDouble(z);
+    		WhiteListedLocations.add(new Location(plugin.getFreeWorld(), xd , yd, zd));
+        	dirty=true;
+        	return true;
+    	}catch(NumberFormatException e){
+    		return false;
+    	}
+
+    }
+    
+    public boolean removeWhitelistedLocation(String x, String y, String z){
+    	try{
+    		Double xd = stringToDouble(x);
+			Double yd = stringToDouble(y);
+			Double zd = stringToDouble(z);
+    		if(removeWhitelistedLocation(new Location(plugin.getFreeWorld(), xd , yd, zd))){
+    			return false;
+    		}
+        	return true;
+    	}catch(NumberFormatException e){
+    		return false;
+    	}
+
     }
 	
 }
