@@ -2,15 +2,15 @@ package com.untamedears.PrisonPearl.managers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
-import net.minecraft.server.v1_7_R4.EntityPlayer;
-import net.minecraft.server.v1_7_R4.MinecraftServer;
-import net.minecraft.server.v1_7_R4.PlayerInteractManager;
-import net.minecraft.util.com.mojang.authlib.GameProfile;
+import net.minecraft.server.v1_8_R2.EntityPlayer;
+import net.minecraft.server.v1_8_R2.MinecraftServer;
+import net.minecraft.server.v1_8_R2.PlayerInteractManager;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -25,7 +25,7 @@ import org.bukkit.block.Dispenser;
 import org.bukkit.block.DoubleChest;
 import org.bukkit.block.Furnace;
 import org.bukkit.configuration.Configuration;
-import org.bukkit.craftbukkit.v1_7_R4.CraftServer;
+import org.bukkit.craftbukkit.v1_8_R2.CraftServer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
@@ -58,6 +58,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 import vg.civcraft.mc.mercury.MercuryAPI;
 
+import com.mojang.authlib.GameProfile;
 import com.untamedears.PrisonPearl.EnderExpansion;
 import com.untamedears.PrisonPearl.PrisonPearl;
 import com.untamedears.PrisonPearl.PrisonPearlPlugin;
@@ -506,7 +507,8 @@ public class PrisonPearlManager implements Listener {
 				if (holder==null){
 					Player player=pearl.getHolderPlayer();
 					pearl.markMove();
-					ee.updateEnderStoragePrison(pearl, event, player.getTargetBlock(null, 5).getLocation());
+					// Ender Expansion isn't currently being used anyways.  Not sure if this method will work.
+					ee.updateEnderStoragePrison(pearl, event, player.getTargetBlock(new HashSet<Material>(), 5).getLocation());
 				}
 				else{
 				pearl.markMove();
@@ -532,7 +534,7 @@ public class PrisonPearlManager implements Listener {
 				if (holder==null){
 					Player player=pearl.getHolderPlayer();
 					pearl.markMove();
-					ee.updateEnderStoragePrison(pearl, event, player.getTargetBlock(null, 5).getLocation());
+					ee.updateEnderStoragePrison(pearl, event, player.getTargetBlock(new HashSet<Material>(), 5).getLocation());
 				}
 				else if(holder.getInventory().firstEmpty() >= 0) {
 					pearl.markMove();

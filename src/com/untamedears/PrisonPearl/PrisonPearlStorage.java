@@ -37,6 +37,8 @@ import vg.civcraft.mc.namelayer.NameAPI;
 import com.untamedears.PrisonPearl.database.PrisonPearlMysqlStorage;
 import com.untamedears.PrisonPearl.managers.PrisonPearlManager;
 
+import vg.civcraft.mc.namelayer.NameAPI;
+
 //import com.untamedears.EnderExpansion.Enderplugin;
 
 public class PrisonPearlStorage implements SaveLoad {
@@ -163,6 +165,7 @@ public class PrisonPearlStorage implements SaveLoad {
 			br.append(pp.getMotd());
 			br.append("\n");
 		}
+		
 		br.write("lastFeed:" + lastFeed);
 		br.flush();
 		fos.close();
@@ -223,7 +226,6 @@ public class PrisonPearlStorage implements SaveLoad {
 			inv[0] = ((BrewingStand)inherentViolence).getInventory();
 			break;
 		case CHEST:
-		case LOCKED_CHEST:
 		case TRAPPED_CHEST:
 			Chest c = ((Chest)inherentViolence);
 			DoubleChestInventory dblInv = null;
