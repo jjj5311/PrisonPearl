@@ -376,7 +376,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		if (force || portalman.isDirty())
 			save(portalman, getPortaledPlayersFile());
 		if (force || wbManager.isDirty())
-			save(wbManager, getWhiteListedCordsFile());
+			save(wbManager, getWhiteListedLocationsFile());
 	}
 	
 	private static void load(SaveLoad obj, File file) {
@@ -428,8 +428,8 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		return new File(getDataFolder(), "portaledplayersUUID.txt");
 	}
 	
-	private File getWhiteListedCordsFile() {
-		return new File(getDataFolder(), "whitelistedcords.txt");
+	private File getWhiteListedLocationsFile() {
+		return new File(getDataFolder(), "whitelistedlocations.txt");
 	}
 	
 	private File getAltsListFile() {

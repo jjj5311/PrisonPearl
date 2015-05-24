@@ -71,7 +71,7 @@ public class WorldBorderManager implements SaveLoad{
 		BufferedReader br = new BufferedReader(new InputStreamReader(fis));
 		if (file.exists()){
 			if(br.readLine() == null){
-				plugin.getLogger().log(Level.INFO, "WhiteListedCords file is empty");;
+				plugin.getLogger().log(Level.INFO, file.getName()+ " file is empty");;
 				br.close();
 				return;
 			}
