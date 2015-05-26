@@ -134,7 +134,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		broadcastman = new BroadcastManager();
 		combatTagManager = new CombatTagManager(this.getServer(), log);
 		wbManager = new WorldBorderManager(this);
-		load(wbManager, getWhiteListedCordsFile());
+		load(wbManager, getWhiteListedLocationsFile());
 		loadAlts();
 		// Isnt needed since loadAlts() does this already
 		// checkBanAllAlts();
@@ -152,7 +152,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			}
 		}, 0, getConfig().getLong("save_ticks"));
 		
-		PrisonPearlCommands commands = new PrisonPearlCommands(this, damageman, pearls, pearlman, summonman, broadcastman);
+		PrisonPearlCommands commands = new PrisonPearlCommands(this, damageman, pearls, pearlman, summonman, broadcastman, wbManager);
 		
 		for (String command : getDescription().getCommands().keySet()) {
 			if (command.equals("ppkill") && !getConfig().getBoolean("ppkill_enabled"))
@@ -431,7 +431,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	private File getWhiteListedLocationsFile() {
 		return new File(getDataFolder(), "whitelistedlocations.txt");
 	}
-	
+
 	private File getAltsListFile() {
 		return getFile("altsUUID.txt");
 	}
