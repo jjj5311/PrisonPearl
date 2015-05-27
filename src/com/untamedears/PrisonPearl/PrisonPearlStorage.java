@@ -439,7 +439,7 @@ public class PrisonPearlStorage implements SaveLoad {
 			} else if (retval != HolderStateToInventory_SUCCESS) {
 				continue;
 			}
-			else if (plugin.isMaxFeed(loc)){
+			else if (plugin.getWBManager().isMaxFeed(loc)){
 				String reason = prisonerId + " is being freed. Reason: Freed during coal feed, was outside max distance.";
 				pearlman.freePearl(pp, reason);
 				log+="\n freed:"+prisonerId+",reason:"+"maxDistance";

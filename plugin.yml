@@ -221,6 +221,9 @@ permissions:
 
    prisonpearl.banalts:
       default: op
+   
+   prisonpearl.wb:
+      default: op
 
    prisonpearl.*:
       description: Gives full access to PrisonPearl commands
@@ -236,3 +239,4 @@ permissions:
          prisonpearl.pplistbans: true
          prisonpearl.banalts: true
          prisonpearl.unbanalts: true
+         prisonpearl.wb : true

@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -20,6 +21,7 @@ import com.untamedears.PrisonPearl.managers.BroadcastManager;
 import com.untamedears.PrisonPearl.managers.DamageLogManager;
 import com.untamedears.PrisonPearl.managers.PrisonPearlManager;
 import com.untamedears.PrisonPearl.managers.SummonManager;
+import com.untamedears.PrisonPearl.managers.WorldBorderManager;
 
 import vg.civcraft.mc.namelayer.NameAPI;
 
@@ -30,16 +32,18 @@ class PrisonPearlCommands implements CommandExecutor {
     private final PrisonPearlManager pearlman;
     private final SummonManager summonman;
     private final BroadcastManager broadcastman;
+    private final WorldBorderManager wbManager;
     private boolean isNameLayer;
     private boolean isMercury;
 
-    public PrisonPearlCommands(PrisonPearlPlugin plugin, DamageLogManager damageman, PrisonPearlStorage pearls, PrisonPearlManager pearlman, SummonManager summonman, BroadcastManager broadcastman) {
+    public PrisonPearlCommands(PrisonPearlPlugin plugin, DamageLogManager damageman, PrisonPearlStorage pearls, PrisonPearlManager pearlman, SummonManager summonman, BroadcastManager broadcastman, WorldBorderManager wbManager) {
         this.plugin = plugin;
         this.pearls = pearls;
         this.damageman = damageman;
         this.pearlman = pearlman;
         this.summonman = summonman;
         this.broadcastman = broadcastman;
+        this.wbManager = wbManager;
         isNameLayer = Bukkit.getPluginManager().isPluginEnabled("NameLayer");
         isMercury = plugin.isMercuryLoaded();
     }
@@ -48,138 +52,233 @@ class PrisonPearlCommands implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (label.equalsIgnoreCase("pplocate") || label.equalsIgnoreCase("ppl")) {
             if(sender.hasPermission("prisonpearl.normal.pplocate")) {// sees if the players has the permission.
-                return locateCmd(sender, args, false);}
-            else {sender.sendMessage("You Do not have Permissions prisonpearl.normal.pplocate");}// if players doesn't have permission, broadcasts message saying what they are missing.
-
-        }else if (label.equalsIgnoreCase("pplocateany")){
+                return locateCmd(sender, args, false);
+            } else {
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.normal.pplocate");
+            }
+        } else if (label.equalsIgnoreCase("pplocateany")) {
             if (sender.hasPermission("prisonpearl.pplocateany")) {// sees if the players has the permission.
-                return locateCmd(sender, args, true);}
-            else {sender.sendMessage("You Do not have Permissions prisonpearl.pplocateany");}// if players doesn't have permission, broadcasts message saying what they are missing.
-
+                return locateCmd(sender, args, true);
+            } else {
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.pplocateany");
+            }
         } else if (label.equalsIgnoreCase("ppfree") || label.equalsIgnoreCase("ppf")) {
             if(sender.hasPermission("prisonpearl.normal.ppfree")) {// sees if the players has the permission.
-                return freeCmd(sender, args, false);}
-            else {sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppfree");} // if players doesn't have permission, broadcasts message saying what they are missing.
-
+                return freeCmd(sender, args, false);
+            } else {
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppfree");
+            } 
         } else if (label.equalsIgnoreCase("ppfreeany")) {
             if(sender.hasPermission("prisonpearl.ppfreeany")) {// sees if the players has the permission.
-                return freeCmd(sender, args, true);}
-            else {sender.sendMessage("You Do not have Permissions prisonpearl.ppfreeany");} // if players doesn't have permission, broadcasts message saying what they are missing.
-
+                return freeCmd(sender, args, true);
+            } else {
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.ppfreeany");
+            } 
         } else if (label.equalsIgnoreCase("ppsummon") || label.equalsIgnoreCase("pps")) {
             if(sender.hasPermission("prisonpearl.normal.ppsummon")) {// sees if the players has the permission.
-                return summonCmd(sender, args);}
-            else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppsummon");}// if players doesn't have permission, broadcasts message saying what they are missing.
-
+                return summonCmd(sender, args);
+            } else { 
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppsummon");
+            }
         } else if (label.equalsIgnoreCase("ppreturn") || label.equalsIgnoreCase("ppr")) {
             if(sender.hasPermission("prisonpearl.normal.ppreturn")) {// sees if the players has the permission.
-                return returnCmd(sender, args);}
-            else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppreturn");}// if players doesn't have permission, broadcasts message saying what they are missing.
-
+                return returnCmd(sender, args);
+            } else { 
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppreturn");
+            }
         } else if (label.equalsIgnoreCase("ppkill") || label.equalsIgnoreCase("ppk")) {
             if(sender.hasPermission("prisonpearl.normal.ppkill")) {// sees if the players has the permission.
-                return killCmd(sender, args);}
-            else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppkill");}// if players doesn't have permission, broadcasts message saying what they are missing.
-
+                return killCmd(sender, args);
+            } else {
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppkill");
+            }
         } else if (label.equalsIgnoreCase("ppsave")) {
             if(sender.hasPermission("prisonpearl.ppsave")) {// sees if the players has the permission.
-                return saveCmd(sender, args);}
-            else{ sender.sendMessage("You Do not have Permissions prisonpearl.ppsave");}// if players doesn't have permission, broadcasts message saying what they are missing.
+                return saveCmd(sender, args);
+            } else { 
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.ppsave");
+            }
 
         } else if (label.equalsIgnoreCase("ppimprisonany")) {
             if(sender.hasPermission("prisonpearl.ppimprisonany")) {// sees if the players has the permission.
-                return imprisonCmd(sender, args);}
-            else{ sender.sendMessage("You Do not have Permissions prisonpearl.ppimprisonany");}// if players doesn't have permission, broadcasts message saying what they are missing.
-
+                return imprisonCmd(sender, args);
+            } else { 
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.ppimprisonany");
+            }
         } else if (label.equalsIgnoreCase("ppbroadcast")) {
             if(sender.hasPermission("prisonpearl.normal.ppbroadcast")) {// sees if the players has the permission.
-                return broadcastCmd(sender, args);}
-            else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppbroadcast");}// if players doesn't have permission, broadcasts message saying what they are missing.
-
+                return broadcastCmd(sender, args);
+            } else { 
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppbroadcast");
+            }
         } else if (label.equalsIgnoreCase("ppconfirm")) {
             if(sender.hasPermission("prisonpearl.normal.ppconfirm")) {// sees if the players has the permission.
-                return confirmCmd(sender, args);}
-            else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppconfirm");}// if players doesn't have permission, broadcasts message saying what they are missing.
-
+                return confirmCmd(sender, args);
+            } else { 
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppconfirm");
+            }
         } else if (label.equalsIgnoreCase("ppsilence")) {
             if(sender.hasPermission("prisonpearl.normal.ppsilence")) {// sees if the players has the permission.
-                return silenceCmd(sender, args);}
-            else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppsilence");}// if players doesn't have permission, broadcasts message saying what they are missing.
-
+                return silenceCmd(sender, args);
+            } else { 
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppsilence");
+            }
         } else if (label.equalsIgnoreCase("pploadalts")) {
             if(sender.hasPermission("prisonpearl.pploadalts")) {// sees if the players has the permission.
-                return reloadAlts(sender);}
-            else{ sender.sendMessage("You Do not have Permissions prisonpearl.pploadalts");}// if players doesn't have permission, broadcasts message saying what they are missing.
-
+                return reloadAlts(sender);
+            } else {
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.pploadalts");
+            }
         } else if (label.equalsIgnoreCase("ppcheckall")) {
             if(sender.hasPermission("prisonpearl.ppcheckall")) {// sees if the players has the permission.
-                return checkAll(sender);}
-            else{ sender.sendMessage("You Do not have Permissions prisonpearl.ppcheckall");}// if players doesn't have permission, broadcasts message saying what they are missing.
+                return checkAll(sender);
+            } else { 
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.ppcheckall");
+            }
 
         } else if (label.equalsIgnoreCase("ppcheck")) {
             if(sender.hasPermission("prisonpearl.ppcheck")) {// sees if the players has the permission.
-                return check(sender, args);}
-            else{ sender.sendMessage("You Do not have Permissions prisonpearl.ppcheck");}// if players doesn't have permission, broadcasts message saying what they are missing.
-
+                return check(sender, args);
+            } else { 
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.ppcheck");
+            }
         } else if (label.equalsIgnoreCase("kill")) {
             if(sender.hasPermission("prisonpearl.kill")) {// sees if the players has the permission.
-                return kill();}
-            else{ sender.sendMessage("You Do not have Permissions prisonpearl.kill");}// if players doesn't have permission, broadcasts message saying what they are missing.
-
+                return kill();
+            } else { 
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.kill");
+            }
         } else if (label.equalsIgnoreCase("ppsetdist")) {
             if(sender.hasPermission("prisonpearl.normal.ppsetdist")) {// sees if the players has the permission.
-                return setDistCmd(sender, args);}
-            else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppsetdist");}// if players doesn't have permission, broadcasts message saying what they are missing.
-
+                return setDistCmd(sender, args);
+            } else { 
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppsetdist");
+            }
         } else if (label.equalsIgnoreCase("ppsetdamage")) {
             if(sender.hasPermission("prisonpearl.normal.ppsetdamage")) {// sees if the players has the permission.
-                return setDamageCmd(sender, args);}
-            else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppsetdamage");}// if players doesn't have permission, broadcasts message saying what they are missing.
-
+                return setDamageCmd(sender, args);
+            } else { 
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppsetdamage");
+            }
         } else if (label.equalsIgnoreCase("pptogglespeech")) {
             if(sender.hasPermission("prisonpearl.normal.pptogglespeech")) {// sees if the players has the permission.
-                return toggleSpeechCmd(sender, args);}
-            else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.pptogglespeech");}// if players doesn't have permission, broadcasts message saying what they are missing.
-
+                return toggleSpeechCmd(sender, args);
+            } else { 
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.normal.pptogglespeech");
+            }
         } else if (label.equalsIgnoreCase("pptoggledamage")) {
             if(sender.hasPermission("prisonpearl.normal.pptoggledamage")) {// sees if the players has the permission.
-                return toggleDamageCmd(sender, args);}
-            else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.pptoggledamage");}// if players doesn't have permission, broadcasts message saying what they are missing.
-
+                return toggleDamageCmd(sender, args);
+            } else { 
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.normal.pptoggledamage");
+            }
         } else if (label.equalsIgnoreCase("pptoggleblocks")) {
             if(sender.hasPermission("prisonpearl.normal.pptoggleblocks")) {// sees if the players has the permission.
-                return toggleBlocksCmd(sender, args);}
-            else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.pptoggleblocks");}// if players doesn't have permission, broadcasts message saying what they are missing.
-
+                return toggleBlocksCmd(sender, args);
+            } else { 
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.normal.pptoggleblocks");
+            }
         } else if (label.equalsIgnoreCase("ppsetmotd")) {
             if(sender.hasPermission("prisonpearl.normal.ppsetmotd")) {// sees if the players has the permission.
-                return setMotdCmd(sender, args);}
-            else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppsetmotd");}// if players doesn't have permission, broadcasts message saying what they are missing.
-
+                return setMotdCmd(sender, args);
+            } else { 
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppsetmotd");
+            }
         } else if (label.equalsIgnoreCase("ppfeed")) {
         	pearlman.prisonCommandEvent("ppfeed");
             return feedCmd(sender, args, false);
-
         } else if (label.equalsIgnoreCase("pprestore")) {
             return restoreCmd(sender, args, false);
-            
         }else if (label.equalsIgnoreCase("ppgetalts")) {
             if(sender.hasPermission("prisonpearl.getalts")) {// sees if the players has the permission.
-                return getAltsByName(sender, args);}
-            else{ sender.sendMessage("You Do not have Permissions prisonpearl.getalts");}// if players doesn't have permission, broadcasts message saying what they are missing.
-
+                return getAltsByName(sender, args);
+            } else { 
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.getalts");
+            }
         } else if (label.equalsIgnoreCase("ppsetalts")) {
             if(sender.hasPermission("prisonpearl.setalts")) {// sees if the players has the permission.
-                return setAlts(sender, args);}
-            else{ sender.sendMessage("You Do not have Permissions prisonpearl.setalts");}// if players doesn't have permission, broadcasts message saying what they are missing.
-
-        } else if (label.equalsIgnoreCase("ppban")){
+                return setAlts(sender, args);
+            } else { 
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.setalts");
+            }
+        } else if (label.equalsIgnoreCase("ppban")) {
         	return banAlt(sender, args);
-        } else if (label.equalsIgnoreCase("ppunban")){
+        } else if (label.equalsIgnoreCase("ppunban")) {
         	return unBanAlt(sender, args);
+        } else if (label.equalsIgnoreCase("ppwb")) {
+        	if(sender.hasPermission("prisonpearl.wb")) {// sees if the players has the permission.
+                return WhiteListedLocations(sender, args);
+            } else { 
+            	// if players doesn't have permission, broadcasts message saying what they are missing.
+            	sender.sendMessage("You Do not have Permissions prisonpearl.wb");
+            }
         }
         return false;
     }
+
+	private boolean WhiteListedLocations(CommandSender sender, String[] args) {
+		if(args[0].equals("add")) {
+			if(args.length==1&&sender instanceof Player) {
+				Player player = (Player) sender;
+				Location loc = new Location(player.getWorld(), player.getLocation().getBlockX(), player.getLocation().getBlockY(), player.getLocation().getBlockZ());
+				if(wbManager.addWhitelistedLocation(loc)) {
+					sender.sendMessage(ChatColor.GREEN + "Location was added.");
+				} else {
+					sender.sendMessage(ChatColor.GREEN + "This location is already on the whitelist.");
+				}
+				return true;
+			} else if(args.length == 4) {
+				if(!wbManager.addWhitelistedLocation(args[1], args[2], args[3])) {
+					return false;
+				}
+				sender.sendMessage(ChatColor.GREEN + "Location was added.");
+				return true;
+			}
+		}else if(args[0].equals("remove")) {
+			if(args.length==1&&sender instanceof Player) {
+				Player player = (Player) sender;
+				Location loc = new Location(player.getWorld(), player.getLocation().getBlockX(), player.getLocation().getBlockY(), player.getLocation().getBlockZ());
+				if(wbManager.removeWhitelistedLocation(loc)) {
+					sender.sendMessage(ChatColor.GREEN + "Location was removed.");
+				} else {
+					sender.sendMessage(ChatColor.RED + "Location wasnt found.");
+				}
+				return true;
+			} else if(args.length == 4) {
+				if(!wbManager.removeWhitelistedLocation(args[1], args[2], args[3])) {
+					sender.sendMessage(ChatColor.RED + "Location wasnt found.");
+					return false;
+				}
+				sender.sendMessage(ChatColor.GREEN + "Location was removed.");
+				return true;
+			}
+		}
+		return false;
+	}
 
 	private boolean unBanAlt(CommandSender sender, String[] args) {
 		String name = args[0];
