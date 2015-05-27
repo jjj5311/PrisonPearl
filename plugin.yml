@@ -114,6 +114,10 @@ commands:
       description: Unbans a player's alt list.
       usage: /ppunban <player>
       permission: prisonpearl.unbanalts
+   ppwb:
+      description: add or remove a while listed location.
+      usage: /ppwb <add/remove> <x> <y> <z>
+      permission: prisonpearl.ppwb
 
 permissions:
    prisonpearl.normal.pplocate:
