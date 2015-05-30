@@ -241,6 +241,9 @@ class PrisonPearlCommands implements CommandExecutor {
     }
 
 	private boolean WhiteListedLocations(CommandSender sender, String[] args) {
+		if(args.length==0){
+			return false;
+		}
 		if(args[0].equals("add")) {
 			if(args.length==1&&sender instanceof Player) {
 				Player player = (Player) sender;
