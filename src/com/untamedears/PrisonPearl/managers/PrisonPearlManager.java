@@ -514,7 +514,7 @@ public class PrisonPearlManager implements Listener {
 				pearl.markMove();
 				updatePearlHolder(pearl, holder, event);
 				}
-				if (plugin.getWBManager().isMaxFeed(pearl.getLocation())){
+				if (!(holder instanceof Player)&&plugin.getWBManager().isMaxFeed(pearl.getLocation())){
 					HumanEntity human = event.getWhoClicked();
 					if (human instanceof Player){
 						Player p = (Player) human;
@@ -540,7 +540,7 @@ public class PrisonPearlManager implements Listener {
 					pearl.markMove();
 					updatePearlHolder(pearl, holder, event);
 				}
-				if (plugin.getWBManager().isMaxFeed(pearl.getLocation())){
+				if (!(holder instanceof Player)&&plugin.getWBManager().isMaxFeed(pearl.getLocation())){
 					HumanEntity human = event.getWhoClicked();
 					if (human instanceof Player){
 						Player p = (Player) human;
