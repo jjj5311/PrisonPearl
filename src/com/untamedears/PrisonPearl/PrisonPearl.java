@@ -307,7 +307,7 @@ public class PrisonPearl {
 				return HolderVerReason.NO_ITEM_PLAYER_OR_LOCATION;
 			}
 			for (ItemStack item : inv.all(Material.ENDER_PEARL).values()) {
-				if (item.getDurability() == id)
+				if (item.getDurability() == id) {
 					if (holder.blocklocation != null)
 						feedback.append(String.format("In inventory at (%d,%d,%d)",
 							holder.blocklocation.getBlockX(),
@@ -319,6 +319,7 @@ public class PrisonPearl {
 								holder.player.getLocation().getBlockY(),
 								holder.player.getLocation().getBlockZ()));
 					return HolderVerReason.IN_CHEST;
+				}
 			}
 			return HolderVerReason.DEFAULT;
 		}
