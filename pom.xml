@@ -62,7 +62,7 @@
     </dependency>
 	<dependency>
       <groupId>net.minelink</groupId>
-      <artifactId>CombatTagPlusParent</artifactId>
+      <artifactId>CombatTagPlus</artifactId>
       <version>[1.2.0,)</version>
       <scope>provided</scope>
     </dependency>
