@@ -2,8 +2,11 @@ package com.untamedears.PrisonPearl;
 
 import java.util.UUID;
 
+import net.minelink.ctplus.Npc;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
@@ -31,5 +34,19 @@ class CombatTagListener implements Listener {
         Location loc = npc.getEntity().getLocation();
 
         pearlman_.handleNpcDespawn(plruuid, loc);
+    }
+    
+    @EventHandler
+    public void onNpcDespawnPlus(net.minelink.ctplus.event.NpcDespawnEvent event){
+    	Npc npc = event.getNpc();
+    	
+    	Player p = npc.getEntity();
+    	
+    	if (p.isOnline())
+    		return;
+    	UUID plruuid = p.getUniqueId();
+    	Location loc = p.getLocation();
+    	
+    	pearlman_.handleNpcDespawn(plruuid, loc);
     }
 }
