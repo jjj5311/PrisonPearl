@@ -152,7 +152,7 @@ class PrisonPearlCommands implements CommandExecutor {
 
         } else if (label.equalsIgnoreCase("ppcheck")) {
         	if(sender instanceof ConsoleCommandSender){         
-                return checkAll(sender);
+                return check(sender, args);
             } else { 
             	// if players doesn't have permission, broadcasts message saying what they are missing.
             	sender.sendMessage("You Do not have Permissions prisonpearl.ppcheck");
