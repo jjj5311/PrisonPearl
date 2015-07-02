@@ -784,5 +784,12 @@ public class FakeLocation extends Location{
 			// TODO Auto-generated method stub
 			return null;
 		}
+
+		@Override
+		public Collection<Entity> getNearbyEntities(Location arg0, double arg1,
+				double arg2, double arg3) {
+			// TODO Auto-generated method stub
+			return null;
+		}
 	}
 }
