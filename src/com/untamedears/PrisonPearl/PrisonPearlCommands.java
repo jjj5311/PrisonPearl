@@ -143,7 +143,7 @@ class PrisonPearlCommands implements CommandExecutor {
             	sender.sendMessage("You Do not have Permissions prisonpearl.pploadalts");
             }
         } else if (label.equalsIgnoreCase("ppcheckall")) {
-            if(sender.hasPermission("prisonpearl.ppcheckall")) {// sees if the players has the permission.
+        	if(sender instanceof ConsoleCommandSender){         
                 return checkAll(sender);
             } else { 
             	// if players doesn't have permission, broadcasts message saying what they are missing.
@@ -151,8 +151,8 @@ class PrisonPearlCommands implements CommandExecutor {
             }
 
         } else if (label.equalsIgnoreCase("ppcheck")) {
-            if(sender.hasPermission("prisonpearl.ppcheck")) {// sees if the players has the permission.
-                return check(sender, args);
+        	if(sender instanceof ConsoleCommandSender){         
+                return checkAll(sender);
             } else { 
             	// if players doesn't have permission, broadcasts message saying what they are missing.
             	sender.sendMessage("You Do not have Permissions prisonpearl.ppcheck");
