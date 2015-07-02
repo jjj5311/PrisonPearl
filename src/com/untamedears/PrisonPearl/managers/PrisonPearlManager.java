@@ -189,6 +189,14 @@ public class PrisonPearlManager implements Listener {
 		inv.setItem(pearlnum, is);
 		// Reason for edit: Gives pearl enchantment effect (distinguishable, unstackable) Gives name of prisoner in inventory.
 
+
+                //check if imprisoned was imprisoned by themselves
+		if(imprisoner.getUniqueId() == pearled.getUniqueId()){
+			//ok player imprisoned themselves throw the pearl on the floor
+			imprisoner.getWorld().dropItem(imprisoner.getLocation(), is);
+			Bukkit.getLogger().info("Player attempted to imprison themself. Pearl was dropped");
+		}
+		
 		if (getConfig().getBoolean("prison_resetbed")) {
 			Player imprisoned = Bukkit.getPlayer(imprisonedId);
 			// clear out the players bed
@@ -196,6 +204,7 @@ public class PrisonPearlManager implements Listener {
 				imprisoned.setBedSpawnLocation(respawnworld.getSpawnLocation());
 			}
 		}
+		
 		return true;
 	}
 
